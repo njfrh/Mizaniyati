@@ -26,14 +26,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $tab = 'register';
     } else {
      
-      $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+      $stmt = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
       $stmt->execute([$email]);
       if ($stmt->fetch()) {
         $errors[] = 'Email already registered. Please login.';
         $tab = 'login';
  } else {
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $pdo->prepare('INSERT INTO users (name,email,password_hash) VALUES (?,?,?)');
+        $stmt = $conn->prepare('INSERT INTO users (name,email,password_hash) VALUES (?,?,?)');
         $stmt->execute([$name, $email, $hash]);
        
         $notice = 'Account created successfully. Please login.';
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $errors[] = 'Email and password are required.';
       $tab = 'login';
     } else {
-     $stmt = $pdo->prepare('SELECT id, name, password_hash FROM users WHERE name = ? LIMIT 1');
+     $stmt = $conn->prepare('SELECT id, name, password_hash FROM users WHERE name = ? LIMIT 1');
      $stmt->execute([$username]);
       $user = $stmt->fetch();
       if (!$user || !password_verify($password, $user['password_hash'])) {
