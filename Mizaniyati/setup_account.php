@@ -1,7 +1,7 @@
 <?php
 session_start();
 include "db.php";
-
+//هاي انا وضحى
 $user_id = $_SESSION['user_id'] ?? 1;
 
   if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['salary'], $_POST['auto_split']))  {
