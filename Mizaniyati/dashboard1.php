@@ -8,9 +8,7 @@ $user_id = $_SESSION['user_id'] ?? 1;
 $check = $conn->query("SELECT balance FROM accounts WHERE user_id = $user_id AND account_type = 'إجمالي'");
 if ($check->num_rows == 0) {
     $conn->query("INSERT INTO accounts (user_id, account_type, balance) VALUES ($user_id, 'إجمالي', 0)");
-
-     $check = $conn->query("SELECT balance FROM accounts WHERE user_id = $user_id AND account_type = 'إجمالي'");
-
+    $check = $conn->query("SELECT balance FROM accounts WHERE user_id = $user_id AND account_type = 'إجمالي'");
 }
 
 // جلب الرصيد الحالي
@@ -20,12 +18,20 @@ $total_balance = (float)$row['balance'];
 // معالجة الأزرار
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    $amount = abs(floatval($_POST['amount'] ?? 0)); // الرقم اللي يكتبه المستخدم
+    $amount = abs(floatval($_POST['amount'] ?? 0));
+
     if ($action === 'add' && $amount > 0) {
         $total_balance += $amount;
     } elseif ($action === 'subtract' && $amount > 0) {
         $total_balance = max(0, $total_balance - $amount);
+    } elseif ($action === 'savings') {
+        header("Location: savings.php");
+        exit;
+    } elseif ($action === 'locked') {
+        header("Location: locked.php");
+        exit;
     }
+
     $conn->query("UPDATE accounts SET balance = $total_balance WHERE user_id = $user_id AND account_type = 'إجمالي'");
     header("Location: dashboard1.php");
     exit;
@@ -92,7 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     margin-bottom: 50px;
   }
 
-  /* الدوائر والخانات */
   .stats {
     display: flex;
     justify-content: center;
@@ -144,6 +149,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     justify-content: center;
     gap: 6px;
   }
+
+  /* البوكسات */
+  .accounts {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+  }
+  .account-card {
+    width: 150px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: center;
+  }
+  .account-card:hover {
+    background-color: #f5f5f5;
+    transform: scale(1.03);
+  }
+  .account-card h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #222;
+  }
+  .account-card p {
+    margin: 6px 0;
+    font-weight: bold;
+    font-size: 18px;
+  }
+  .account-card small {
+    color: #777;
+    font-size: 12px;
+  }
+
+  button.account-card {
+    background: none;
+    border: none;
+  }
 </style>
 </head>
 <body>
@@ -181,7 +228,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
       </form>
     </div>
-  </div>
 
+    <!-- ✅ الحسابات -->
+    <div class="accounts">
+      <form method="post">
+        <button type="submit" name="action" value="savings" class="account-card">
+          <h3>حساب الترفيه</h3>
+          <p>SAR 0</p>
+          <small>+20% مقارنة بالشهر الماضي</small>
+        </button>
+      </form>
+
+      <form method="post">
+        <button type="submit" name="action" value="locked" class="account-card">
+          <h3>حساب مغلق</h3>
+          <p>SAR 0</p>
+          <small>+30% من الراتب مضاف</small>
+        </button>
+      </form>
+    </div>
+
+  </div>
 </body>
 </html>

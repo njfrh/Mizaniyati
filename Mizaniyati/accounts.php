@@ -1,6 +1,6 @@
  <?php
 session_start();
-include 'db.php'; // الاتصال بقاعدة البيانات
+include 'db.php'; // ملف الاتصال بقاعدة البيانات
 
 // تأكد من أن المستخدم مسجل الدخول
 if (!isset($_SESSION['user_id'])) {
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['section'])) {
         $stmt->execute();
     }
 
-    // جلب الرصيد الحالي من قاعدة البيانات
+    // تحديث الرصيد في قاعدة البيانات
     $stmt = $conn->prepare("SELECT balance FROM accounts WHERE user_id = ? AND account_type = 'إجمالي'");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
