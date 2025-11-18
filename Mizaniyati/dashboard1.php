@@ -42,6 +42,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <title>ميزانيتي</title>
+<body>
+  <div class="user-menu-container">
+
+    <div class="user-icon" onclick="toggleMenu()">
+
+        <img src="user_icon.jpg" alt="User Profile" class="profile-image">
+</div>
+    <div class="dropdown-menu" id="userDropdown">
+   <div class="menu-item header-name">مرحباً، <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'مستخدم'); ?></div>
+    
+    <a href="profile.php" class="menu-item">
+        👤 المعلومات الشخصية
+    </a>
+    
+    <a href="rate_app.php" class="menu-item">
+        ⭐️ تقييم التطبيق
+    </a>
+    
+    <a href="#" class="menu-item" onclick="alert('خاصية تغيير اللغة قيد التطوير.')">
+        🌐 اللغة: العربية
+    </a>
+    
+    <a href="logout.php" class="menu-item logout">
+        🚪 تسجيل الخروج
+    </a>
+</div>
+</div>
+
+</body>
 <style>
   body {
     margin: 0;
@@ -191,6 +220,108 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     background: none;
     border: none;
   }
+  
+/* تنسيق أيقونة المستخدم والقائمة المنسدلة */
+.user-menu-container {
+    position: absolute;
+    top: 20px;
+    left: 20px; /* أو right: 20px; حسب اتجاه التصميم */
+    z-index: 1000;
+}
+
+.user-icon {
+    width: 36px; /* **تم تصغير العرض هنا** */
+    height: 36px; /* **تم تصغير الارتفاع هنا** */
+    background-color: #f0f0f0; 
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); /* ظل أصغر */
+    padding: 2px; /* تصغير الـ padding */
+    overflow: hidden; 
+    transition: transform 0.2s;
+}
+
+.menu-item:hover {
+    background-color: #f0f0f0;
+}
+/* هذا هو التعديل الأساسي لضمان عدم التظليل عند مرور الماوس */
+.menu-item.header-name:hover {
+    background-color: transparent; /* إلغاء لون الخلفية عند التمرير */
+}
+
+/* للتأكد من أن المؤشر لا يظهر كـ 'يد' */
+.menu-item.header-name {
+    cursor: default;
+}
+.profile-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover; 
+}
+
+/* يجب تعديل مكان القائمة المنسدلة ليتناسب مع الحجم الجديد */
+.dropdown-menu {
+    position: absolute;
+    top: 45px; /* تم تعديل المسافة من الأعلى: 36px (حجم الأيقونة) + 9px (مسافة) */
+    left: 0; 
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    width: 200px;
+    overflow: hidden;
+    padding: 10px 0;
+    display: none; 
+    text-align: right;
+    direction: rtl;
+}
+.dropdown-menu {
+    position: absolute;
+    top: 55px;
+    left: 0; /* يبدأ من تحت الأيقونة مباشرة */
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    width: 200px;
+    overflow: hidden;
+    padding: 10px 0;
+    display: none; /* يتم إخفاؤها مبدئياً */
+    text-align: right;
+    direction: rtl;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.menu-item {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background-color: #f0f0f0;
+}
+
+.menu-item.header-name {
+    font-weight: bold;
+    color: #101826;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 5px;
+    cursor: default;
+}
+
+.menu-item.logout {
+    color: #dc3545; /* لون أحمر لتسجيل الخروج */
+}
 </style>
 </head>
 <body>
@@ -249,5 +380,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
   </div>
+  <script>
+    function toggleMenu() {
+        // هذه الدالة سليمة وتظهر القائمة
+        document.getElementById('userDropdown').classList.toggle('show');
+    }
+
+    // إغلاق القائمة عند الضغط خارجها
+    window.onclick = function(event) {
+        // التحقق مما إذا كان النقر لم يكن داخل حاوية القائمة المنسدلة بالكامل
+        if (!event.target.closest('.user-menu-container')) {
+            var dropdowns = document.getElementsByClassName("dropdown-menu");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+</script>
 </body>
 </html>
