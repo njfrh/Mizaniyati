@@ -1,4 +1,4 @@
- <?php 
+<?php 
 session_start();
 include "db.php"; // الاتصال بقاعدة البيانات
 
@@ -24,6 +24,9 @@ function get_balance($conn, $user_id, $account_type) {
 // رصيد إجمالي
 $total_balance = get_balance($conn, $user_id, 'إجمالي');
 
+// متغير لتخزين رسالة الخطأ (إن وجدت)
+$error = "";
+
 // POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -33,31 +36,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // تحقق من المبلغ
     if ($amount <= 0) {
-        die("مبلغ غير صالح");
+        $error = "الرجاء إدخال مبلغ صحيح أكبر من صفر.";
     }
-
     // تحقق من كفاية الرصيد الإجمالي
-    if ($amount > $total_balance) {
-        die("المبلغ أكبر من الرصيد الإجمالي");
+    elseif ($amount > $total_balance) {
+        $error = "المبلغ أكبر من الرصيد الإجمالي.";
     }
+    else {
+        // خصم من الرصيد الإجمالي
+        $total_balance -= $amount;
 
-    // خصم من الرصيد الإجمالي
-    $total_balance -= $amount;
+        // تخزين العملية
+        $stmt = $conn->prepare("INSERT INTO transactions (user_id, account_type, amount, comment) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("isds", $user_id, $account_type, $amount, $comment);
+        $stmt->execute();
+        $stmt->close();
 
-    // تخزين العملية
-    $stmt = $conn->prepare("INSERT INTO transactions (user_id, account_type, amount, comment) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isds", $user_id, $account_type, $amount, $comment);
-    $stmt->execute();
-    $stmt->close();
+        // تحديث الرصيد الإجمالي
+        $stmt = $conn->prepare("UPDATE accounts SET balance = ? WHERE user_id = ? AND account_type = 'إجمالي'");
+        $stmt->bind_param("di", $total_balance, $user_id);
+        $stmt->execute();
+        $stmt->close();
 
-    // تحديث الرصيد الإجمالي
-    $stmt = $conn->prepare("UPDATE accounts SET balance = ? WHERE user_id = ? AND account_type = 'إجمالي'");
-    $stmt->bind_param("di", $total_balance, $user_id);
-    $stmt->execute();
-    $stmt->close();
-
-   header("Location: savings.php");
-exit;
+        header("Location: savings.php");
+        exit;
+    }
 }
 ?>
 <!doctype html>
@@ -108,11 +111,19 @@ button:hover { background:#ddd; }
 .back-link:hover {
   text-decoration:underline;
 }
+.error-box {
+  background:#ffdede;
+  color:#900;
+  padding:10px;
+  border-radius:8px;
+  text-align:center;
+  margin-bottom:15px;
+  font-size:14px;
+}
 </style>
 </head>
 <body>
 
-<!-- 🔥 الإضافة الوحيدة -->
 <a href="dashboard1.php" class="back-link">← الرجوع إلى صفحة الرصيد الإجمالي</a>
 
 <div class="container">
@@ -123,13 +134,19 @@ button:hover { background:#ddd; }
 
   <h2>إدارة الحسابات</h2>
 
+  <?php if ($error): ?>
+    <div class="error-box">
+      <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+    </div>
+  <?php endif; ?>
+
   <!-- مشتريات يومية -->
   <form method="post">
     <div class="account-box"><h3>مشتريات يومية</h3></div>
     <div class="input-group">
-      <input type="number" name="amount" placeholder="المبلغ" required>
+      <input type="number" name="amount" placeholder="المبلغ" required min="1">
       <input type="text" name="comment" placeholder="تعليق" required>
-    </div]
+    </div>
     <div class="action-buttons">
       <button type="submit" name="action" value="subtract">صرف</button>
       <input type="hidden" name="account_type" value="مشتريات يومية">
@@ -140,7 +157,7 @@ button:hover { background:#ddd; }
   <form method="post">
     <div class="account-box"><h3>مشتريات شهرية</h3></div>
     <div class="input-group">
-      <input type="number" name="amount" placeholder="المبلغ" required]
+      <input type="number" name="amount" placeholder="المبلغ" required min="1">
       <input type="text" name="comment" placeholder="تعليق" required>
     </div>
     <div class="action-buttons">
@@ -153,7 +170,7 @@ button:hover { background:#ddd; }
   <form method="post">
     <div class="account-box"><h3>مشتريات ضرورية</h3></div>
     <div class="input-group">
-      <input type="number" name="amount" placeholder="المبلغ" required>
+      <input type="number" name="amount" placeholder="المبلغ" required min="1">
       <input type="text" name="comment" placeholder="تعليق" required>
     </div>
     <div class="action-buttons">

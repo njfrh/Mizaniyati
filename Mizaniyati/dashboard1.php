@@ -15,22 +15,38 @@ if ($check->num_rows == 0) {
 $row = $check->fetch_assoc() ?? ['balance' => 0];
 $total_balance = (float)$row['balance'];
 
+/* ✅ إضافة بسيطة: نتأكد هل عنده حساب مغلق ولا لا */
+$locked_result = $conn->query("SELECT balance FROM accounts WHERE user_id = $user_id AND account_type = 'مغلق'");
+$has_locked_account = ($locked_result && $locked_result->num_rows > 0);
+$locked_balance = 0;
+if ($has_locked_account) {
+    $locked_row    = $locked_result->fetch_assoc();
+    $locked_balance = (float)$locked_row['balance'];
+}
+// لو اختار "لا" في الإعداد → ما ينشأ حساب مغلق أصلاً → $has_locked_account = false
+
 // معالجة الأزرار
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $action = $_POST['action'] ?? '';
     $amount = abs(floatval($_POST['amount'] ?? 0));
 
     if ($action === 'add' && $amount > 0) {
         $total_balance += $amount;
+
     } elseif ($action === 'subtract' && $amount > 0) {
         $total_balance = max(0, $total_balance - $amount);
+
     } elseif ($action === 'savings') {
         header("Location: savings.php");
         exit;
+
     } elseif ($action === 'locked') {
         header("Location: locked.php");
         exit;
     }
+
+
 
     $conn->query("UPDATE accounts SET balance = $total_balance WHERE user_id = $user_id AND account_type = 'إجمالي'");
     header("Location: dashboard1.php");
@@ -55,9 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   .topbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: 15px 18px;
     background-color: #fff;
+    text-align: center;
   }
   .topbar h1 {
     margin: 0;
@@ -191,20 +208,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     background: none;
     border: none;
   }
+  .account-card {
+width: 250px !important;
+height: 90px !important;
+border-radius: 12px !important;
+display: flex !important;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+}
+
 </style>
 </head>
 <body>
 
   <div class="topbar">
-    <div>🔔</div>
+    
     <h1>ميزانيتي</h1>
-    <div>☰</div>
+    
   </div>
 
   <div class="tabs">
     <div class="tab active">الرصيد</div>
     <div class="tab">التقارير</div>
-    <div class="tab">الحسابات</div>
+    
   </div>
 
   <div class="content">
@@ -231,21 +258,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- ✅ الحسابات -->
     <div class="accounts">
+      <!-- حساب الترفيه يبقى كما هو دائماً -->
       <form method="post">
         <button type="submit" name="action" value="savings" class="account-card">
           <h3>حساب الترفيه</h3>
-          <p>SAR 0</p>
-          <small>+20% مقارنة بالشهر الماضي</small>
+          
         </button>
       </form>
 
+      <!-- ✅ حساب مغلق: يظهر فقط إذا فيه سجل في جدول accounts (يعني المستخدم اختار نعم) -->
+      <?php if ($has_locked_account): ?>
       <form method="post">
         <button type="submit" name="action" value="locked" class="account-card">
           <h3>حساب مغلق</h3>
-          <p>SAR 0</p>
-          <small>+30% من الراتب مضاف</small>
+         
         </button>
       </form>
+      <?php endif; ?>
     </div>
 
   </div>
