@@ -1,15 +1,20 @@
 <?php
 session_start();
 include "db.php";
-//هاي انا وضحى
+
 $user_id = $_SESSION['user_id'] ?? 1;
 
-  if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['salary'], $_POST['auto_split']))  {
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['salary'], $_POST['auto_split']))  {
     // نجلب البيانات من النموذج
-    $salary = isset($_POST["salary"]) ? (float) $_POST["salary"] : 0;
-    $auto_split = isset($_POST["auto_split"]) ? (int) $_POST["auto_split"] : 0;
+    $salary       = isset($_POST["salary"]) ? (float) $_POST["salary"] : 0;
+    $auto_split   = isset($_POST["auto_split"]) ? (int) $_POST["auto_split"] : 0;
     $locked_amount = isset($_POST["locked_amount"]) ? (float) $_POST["locked_amount"] : 0;
     if ($locked_amount < 0) $locked_amount = 0;
+
+    // إضافة الراتب إلى الحساب الإجمالي دائماً
+    $conn->query("INSERT INTO accounts (user_id, account_type, balance)
+                  VALUES ($user_id, 'إجمالي', $salary)
+                  ON DUPLICATE KEY UPDATE balance = $salary");
 
     // حفظ البيانات في settings
     $sql = "INSERT INTO settings (user_id, monthly_salary, auto_split, closed_account_percent)
@@ -19,12 +24,15 @@ $user_id = $_SESSION['user_id'] ?? 1;
                 auto_split = $auto_split, 
                 closed_account_percent = $locked_amount";
     $conn->query($sql);
+    $_SESSION['monthly_salary'] = $salary;
 
     // حذف الحسابات القديمة
     $conn->query("DELETE FROM accounts WHERE user_id = '$user_id'");
 
     if ($auto_split === 1) {
         // تقسيم الراتب على حسابين
+        $conn->query("INSERT INTO accounts (user_id, account_type, balance)
+                      VALUES ('$user_id', 'إجمالي', '$salary')");
         $open_amount = $salary - $locked_amount;
         $conn->query("INSERT INTO accounts (user_id, account_type, balance)
                       VALUES ('$user_id', 'مفتوح', '$open_amount')");
@@ -66,6 +74,7 @@ $user_id = $_SESSION['user_id'] ?? 1;
       border-radius: 20px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       text-align: center;
+      position: relative;
     }
 
     h2 {
@@ -157,17 +166,55 @@ $user_id = $_SESSION['user_id'] ?? 1;
     button:hover {
       background-color: #aaa;
     }
+
+    .back-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+    }
+
+    .back-btn a {
+      background: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      text-decoration: none;
+      color: #333;
+      font-size: 13px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
   </style>
+
   <script>
     function toggleLockedField(value) {
       const lockedDiv = document.getElementById("lockedField");
       lockedDiv.style.display = (value === "1") ? "block" : "none";
+
+      // هنا نخلي required يشتغل أو ينشال
+      toggleRequired();
+    }
+
+    function toggleRequired() {
+      const yes    = document.querySelector('input[name="auto_split"][value="1"]');
+      const locked = document.getElementById('locked_amount');
+
+      if (!locked) return;
+
+      if (yes && yes.checked) {
+        locked.setAttribute('required', 'required');
+      } else {
+        locked.removeAttribute('required');
+      }
     }
   </script>
 </head>
 <body>
 
   <div class="container">
+    <div class="back-btn">
+      <a href="auth.php?tab=login">رجوع</a>
+    </div>
+
     <h2>ميزانيتي</h2>
     <h3>إعداد حساب المالي</h3>
 
@@ -175,7 +222,7 @@ $user_id = $_SESSION['user_id'] ?? 1;
       <label>إدخال الراتب الشهري</label>
       <input type="number" name="salary" placeholder="0" min="0" required>
 
-      <p>هل ترغب بتقسيم راتبك تلقائيًا على حسابين؟</p>
+      <p>هل ترغب في انشاء حساب مغلق للتوفير؟</p>
 
       <div class="radio-group">
         <label class="radio-option">
@@ -190,8 +237,9 @@ $user_id = $_SESSION['user_id'] ?? 1;
       </div>
 
       <div id="lockedField">
-        <label>تحديد المبلغ من راتبك للحساب المغلق:</label>
-        <input type="number" name="locked_amount" placeholder="0" min="0">
+        <label>تحديد المبلغ  للحساب المغلق:</label>
+        <!-- هنا أضفنا name عشان يوصل لـ PHP -->
+        <input type="number" id="locked_amount" name="locked_amount" placeholder="0" min="0">
       </div>
 
       <button type="submit">التالي</button>
