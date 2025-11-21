@@ -1,65 +1,124 @@
- <?php
+<?php
 session_start();
-include "db.php"; // الاتصال بقاعدة البيانات
+include "db.php";
 
 $user_id = $_SESSION['user_id'] ?? 1;
 
-// دالة لجلب الرصيد
+// ========== دالة تجيب رصيد أي حساب ==========
 function get_balance($conn, $user_id, $account_type) {
     $stmt = $conn->prepare("SELECT balance FROM accounts WHERE user_id = ? AND account_type = ?");
     $stmt->bind_param("is", $user_id, $account_type);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($result->num_rows == 0) {
-        // إذا لم يوجد حساب، يتم إنشاؤه برصيد 0
+        // لو ما فيه حساب من هذا النوع نضيفه برصيد 0
         $stmt = $conn->prepare("INSERT INTO accounts (user_id, account_type, balance) VALUES (?, ?, 0)");
         $stmt->bind_param("is", $user_id, $account_type);
         $stmt->execute();
         return 0;
     }
-    
+
     return (float)$result->fetch_assoc()['balance'];
 }
 
 $success_message = '';
 $error_message   = '';
 
-/* ================== معالجة الصرف من الحساب المغلق ================== */
+/* ================== معالجة الفورم ================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
 
-    $action  = $_POST['action'] ?? '';
-    $amount  = abs(floatval($_POST['amount'] ?? 0));
-    $comment = $_POST['comment'] ?? '';
-
+    /* ---- صرف من الحساب المغلق ---- */
     if ($action === 'subtract') {
+        $amount  = abs(floatval($_POST['amount'] ?? 0));
+        $comment = $_POST['comment'] ?? '';
 
         if ($amount <= 0) {
             $error_message = "الرجاء إدخال مبلغ صحيح.";
         } else {
-
-            // جلب الرصيد الحالي في الحساب المغلق
             $locked_balance = get_balance($conn, $user_id, 'مغلق');
 
             if ($amount > $locked_balance) {
                 $error_message = "المبلغ أكبر من رصيد الحساب المغلق.";
             } else {
-                // خصم من رصيد الحساب المغلق
+                // نقص من الحساب المغلق
                 $locked_balance -= $amount;
-
-                // تحديث رصيد حساب مغلق في جدول accounts
                 $stmt = $conn->prepare("UPDATE accounts SET balance = ? WHERE user_id = ? AND account_type = 'مغلق'");
                 $stmt->bind_param("di", $locked_balance, $user_id);
                 $stmt->execute();
                 $stmt->close();
 
-                // تسجيل العملية في جدول transactions
+                // نسجل العملية في transactions
                 $stmt = $conn->prepare("INSERT INTO transactions (user_id, account_type, amount, comment) VALUES (?, 'مغلق', ?, ?)");
                 $stmt->bind_param("ids", $user_id, $amount, $comment);
                 $stmt->execute();
                 $stmt->close();
 
                 $success_message = "تم الصرف من الحساب المغلق بنجاح.";
+                
+            }
+        }
+
+    /* ---- إيداع في الحساب المغلق (مرة واحدة في الشهر) ---- */
+    } elseif ($action === 'deposit_locked') {
+        $deposit_amount = abs(floatval($_POST['deposit_amount'] ?? 0));
+
+        if ($deposit_amount <= 0) {
+            $error_message = "الرجاء إدخال مبلغ صحيح للإيداع.";
+        } else {
+            // نتأكد إن فيه رصيد إجمالي يكفي
+            $total_balance = get_balance($conn, $user_id, 'إجمالي');
+            if ($deposit_amount > $total_balance) {
+                $error_message = "لا يوجد رصيد كافٍ في الرصيد الإجمالي.";
+            } else {
+                // نجيب آخر إيداع من الإعدادات (لازم يكون عندك عمود last_locked_deposit في جدول settings)
+                $stmt = $conn->prepare("SELECT last_locked_deposit FROM settings WHERE user_id = ? LIMIT 1");
+                $stmt->bind_param("i", $user_id);
+                $stmt->execute();
+                $res  = $stmt->get_result();
+                $row  = $res->fetch_assoc();
+                $stmt->close();
+
+                $can_deposit_this_month = true;
+
+                if ($row && !empty($row['last_locked_deposit'])) {
+                    $last = new DateTime($row['last_locked_deposit']);
+                    $now  = new DateTime();
+
+                    // لو نفس الشهر والسنة → خلاص سوّى إيداع قبل
+                    if ($last->format('Y-m') === $now->format('Y-m')) {
+                        $can_deposit_this_month = false;
+                    }
+                }
+
+                if (!$can_deposit_this_month) {
+                    $error_message = "يمكنك الإيداع في الحساب المغلق مرة واحدة فقط في هذا الشهر.";
+                } else {
+                    // ننقص من الإجمالي
+                    $new_total = $total_balance - $deposit_amount;
+                    $stmt = $conn->prepare("UPDATE accounts SET balance = ? WHERE user_id = ? AND account_type = 'إجمالي'");
+                    $stmt->bind_param("di", $new_total, $user_id);
+                    $stmt->execute();
+                    $stmt->close();
+
+                    // نزيد في الحساب المغلق
+                    $locked_balance = get_balance($conn, $user_id, 'مغلق');
+                    $locked_balance += $deposit_amount;
+                    $stmt = $conn->prepare("UPDATE accounts SET balance = ? WHERE user_id = ? AND account_type = 'مغلق'");
+                    $stmt->bind_param("di", $locked_balance, $user_id);
+                    $stmt->execute();
+                    $stmt->close();
+
+                    // نحدّث تاريخ آخر إيداع
+                    $stmt = $conn->prepare("UPDATE settings SET last_locked_deposit = NOW() WHERE user_id = ?");
+                    $stmt->bind_param("i", $user_id);
+                    $stmt->execute();
+                    $stmt->close();
+
+                   $success_message = "تم إضافة المبلغ إلى الحساب المغلق.";
+                   
+                }
             }
         }
     }
@@ -67,20 +126,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* ================== حساب الشروط وعرض الصفحة ================== */
 
-// جلب الراتب/الرصيد الإجمالي
-$salary           = get_balance($conn, $user_id, 'إجمالي');
-// حساب 30% من الراتب
-$required_balance = $salary * 0.30;
-// جلب الرصيد الحالي في الحساب المغلق (بعد أي خصم لو صار)
-$locked_balance   = get_balance($conn, $user_id, 'مغلق');
+// 1) الراتب من السيشن
+$salary = 0;
+if (isset($_SESSION['monthly_salary'])) {
+    $salary = (float)$_SESSION['monthly_salary'];
+}
 
-// التحقق من شرط فتح الحساب المغلق
-if ($locked_balance >= $required_balance) {
+// 2) لو مو موجود → نجيب من settings
+if ($salary <= 0) {
+    $stmt = $conn->prepare("SELECT monthly_salary FROM settings WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row    = $result->fetch_assoc();
+    $stmt->close();
+
+    if ($row && isset($row['monthly_salary'])) {
+        $salary = (float)$row['monthly_salary'];
+    }
+}
+
+// 3) الرصيد الإجمالي
+$total_balance = get_balance($conn, $user_id, 'إجمالي');
+// تحديث الراتب بناءً على الرصيد الإجمالي الجديد (في بداية الشهر)
+if ($total_balance > 0) {
+    $_SESSION['monthly_salary'] = $total_balance;
+
+    $stmt = $conn->prepare("UPDATE settings SET monthly_salary = ? WHERE user_id = ?");
+    $stmt->bind_param("di", $total_balance, $user_id);
+    $stmt->execute();
+    $stmt->close();
+}
+
+// 4) 30% من الراتب
+$required_balance = ($salary > 0) ? $salary * 0.30 : 0;
+
+// 5) رصيد الحساب المغلق
+$locked_balance = get_balance($conn, $user_id, 'مغلق');
+
+// 6) هل يقدر يدخل الحساب المغلق؟
+if ($salary > 0 && $total_balance <= $required_balance) {
     $can_access_locked = true;
     $condition_message = "يمكنك الآن الدخول إلى الحساب المغلق.";
 } else {
     $can_access_locked = false;
-    $condition_message = "لا يمكنك الدخول إلى الحساب المغلق حتى يصل رصيدك إلى " . number_format($required_balance, 0) . " ريال.";
+    $condition_message = "لا يمكنك الدخول إلى الحساب المغلق حتى يصل رصيدك إلى " . number_format($required_balance, 0) . " ريال أو أقل.";
 }
 ?>
 <!DOCTYPE html>
@@ -110,10 +200,43 @@ if ($locked_balance >= $required_balance) {
             background: white;
             width: 50%;
             margin: 0 auto;
-            padding: 20px;
+            padding: 20px 20px 30px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
+        }
+        .top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .top-row h2 {
+            margin: 0;
+        }
+        .small-deposit-form {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .small-deposit-form input[type="number"] {
+            width: 80px;
+            padding: 4px 6px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .small-deposit-form button {
+            padding: 4px 10px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: none;
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+        }
+        .small-deposit-form button:hover {
+            background-color: #218838;
         }
         .message {
             font-weight: bold;
@@ -162,11 +285,21 @@ if ($locked_balance >= $required_balance) {
 </head>
 <body>
 
-    <!-- زر الرجوع إلى صفحة الرصيد الإجمالي -->
     <a href="dashboard1.php" class="back-link">← الرجوع إلى الرصيد الإجمالي</a>
 
     <div class="container">
-        <h2>حسابك المغلق 🛑</h2>
+
+        <div class="top-row">
+            <h2>حسابك المغلق 🛑</h2>
+
+            <?php if (!$can_access_locked): ?>
+                <!-- خانة إيداع صغيرة جنب العنوان، مرة واحدة في الشهر -->
+                <form method="post" class="small-deposit-form">
+                    <input type="number" name="deposit_amount" min="1" placeholder="إيداع" required>
+                    <button type="submit" name="action" value="deposit_locked">إضافة</button>
+                </form>
+            <?php endif; ?>
+        </div>
 
         <div class="message condition"><?= $condition_message ?></div>
 
@@ -184,15 +317,15 @@ if ($locked_balance >= $required_balance) {
                 30% من راتبك: SAR <?= number_format($required_balance, 0) ?>
             </div>
 
-            <!-- نفس الصفحة، مافي locked_process.php -->
             <form method="post" action="">
                 <div class="input-group">
                     <input type="number" name="amount" placeholder="المبلغ للصرف" required>
-                    <input type="text" name="comment" placeholder="التعليق (مثلاً: سفر، طوارئ...)" required>
+                    <input type="text" name="comment" placeholder="التعليق (مثل: سفر، طوارئ...)" required>
                 </div>
                 <button class="submit-btn" type="submit" name="action" value="subtract">صرف</button>
             </form>
         <?php endif; ?>
+
     </div>
 </body>
 </html>

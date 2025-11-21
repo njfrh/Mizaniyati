@@ -7,22 +7,32 @@ $user_id = $_SESSION['user_id'];
 $errors = [];
 $success = '';
 
-function fetch_user_data($conn, $user_id) {
+require_once 'db.php'; // الاتصال بقاعدة البيانات
+$user_id = $_SESSION['user_id'];
+// ... باقي الكود ... 
+
+$user_id = $_SESSION['user_id']; // الآن نستخدم القيمة التي ضمنّا وجودها
+// ... باقي الكود
+$users_id = $_SESSION['users_id'];
+$errors = [];
+$success = '';
+
+function fetch_users_data($conn, $users_id) {
     // 1. نجلب البيانات من جدول users (الاسم، الإيميل)
     $stmt = $conn->prepare('SELECT name, email, password_hash FROM users WHERE id = ?');
-    $stmt->execute([$user_id]);
+    $stmt->execute([$users_id]);
     
 
     
     // دمج البيانات
-    if ($user) {
+    if ($users) {
         // نضمن إعادة قيم افتراضية إذا لم يكن هناك ملف شخصي في جدول user_profile
-        return array_merge($user, $profile ?: ['salary' => 0, 'occupation' => '']);
+        return array_merge($users, $profile ?: ['salary' => 0, 'occupation' => '']);
     }
     return false;
 }
 
-$user_data = fetch_user_data($conn, $user_id);
+$users_data = fetch_users_data($conn, $users_id);
 
 /* ================== معالجة التعديل ================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -151,7 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <div class="field-group">
             <h3>إعدادات إضافية</h3>
-            <p><strong>اللغة:</strong> العربية (قيد التطوير)</p>
             <p><strong>التقييمات:</strong> يمكنك تقييم التطبيق لدعمنا! <a href="rate_app.php" class="back-link" style="color: #007bff;">⭐</a></p>
             <a href="rate_app.php" class="back-link" style="color: #007bff;"> تقييم التطبيق</a>
         </div>

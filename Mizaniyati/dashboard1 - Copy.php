@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
     <div class="dropdown-menu" id="userDropdown">
    <div class="menu-item header-name">مرحباً، <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'مستخدم'); ?></div>
-
+    
     <a href="profile.php" class="menu-item">
         👤 المعلومات الشخصية
     </a>
@@ -76,71 +76,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ⭐️ تقييم التطبيق
     </a>
     
+    <a href="#" class="menu-item" onclick="alert('خاصية تغيير اللغة قيد التطوير.')">
+        🌐 اللغة: العربية
+    </a>
+    
 <a href="logout.php" class="menu-item exit">🚪 تسجيل الخروج</a>
     </a>
 </div>
 </div>
 
-<div class="tabs">
-    <div class="tab active">الرصيد</div> 
-    
-    <a href="reports.php" class="tab-link"> 
-        <div class="tab">التقارير</div>
-    </a>
-</div>
-
-<style>
-    /* إضافة هذا التنسيق في CSS لضمان عدم وجود تنسيق غريب للرابط */
-    .tab-link {
-        text-decoration: none; /* إزالة الخط تحت الرابط */
-        color: inherit;      /* وراثة لون النص */
-    }
-</style>
-
-  <div class="content">
-    <div class="title">الرصيد الإجمالي</div>
-    <div class="balance">SAR <?= number_format($total_balance, 0) ?></div>
-
-    <div class="stats">
-      <form method="post" class="form-row">
-        <input type="number" name="amount" class="amount-box" placeholder="مبلغ" min="0">
-        <div class="circle">
-          <button type="submit" name="action" value="add">+</button>
-          <label>إضافة</label>
-        </div>
-      </form>
-
-      <form method="post" class="form-row">
-        <input type="number" name="amount" class="amount-box" placeholder="مبلغ" min="0">
-        <div class="circle">
-          <button type="submit" name="action" value="subtract">−</button>
-          <label>تقليل</label>
-        </div>
-      </form>
-    </div>
-
-    <!-- ✅ الحسابات -->
-    <div class="accounts">
-      <!-- حساب الترفيه يبقى كما هو دائماً -->
-      <form method="post">
-        <button type="submit" name="action" value="savings" class="account-card">
-          <h3>حساب الترفيه</h3>
-          
-        </button>
-      </form>
-
-      <!-- ✅ حساب مغلق: يظهر فقط إذا فيه سجل في جدول accounts (يعني المستخدم اختار نعم) -->
-      <?php if ($has_locked_account): ?>
-      <form method="post">
-        <button type="submit" name="action" value="locked" class="account-card">
-          <h3>حساب مغلق</h3>
-         
-        </button>
-      </form>
-      <?php endif; ?>
-    </div>
-
-  </div>
 </body>
 <style>
   body {
@@ -509,10 +453,64 @@ align-items: center;
 >>>>>>> f6ceebf7a42516279b1345742b8239e29172b07a
 </style>
 </head>
-
 <body>
 
- 
+  <div class="topbar">
+    
+    <h1>ميزانيتي</h1>
+    
+  </div>
+
+  <div class="tabs">
+    <div class="tab active">الرصيد</div>
+    <div class="tab">التقارير</div>
+    
+  </div>
+
+  <div class="content">
+    <div class="title">الرصيد الإجمالي</div>
+    <div class="balance">SAR <?= number_format($total_balance, 0) ?></div>
+
+    <div class="stats">
+      <form method="post" class="form-row">
+        <input type="number" name="amount" class="amount-box" placeholder="مبلغ" min="0">
+        <div class="circle">
+          <button type="submit" name="action" value="add">+</button>
+          <label>إضافة</label>
+        </div>
+      </form>
+
+      <form method="post" class="form-row">
+        <input type="number" name="amount" class="amount-box" placeholder="مبلغ" min="0">
+        <div class="circle">
+          <button type="submit" name="action" value="subtract">−</button>
+          <label>تقليل</label>
+        </div>
+      </form>
+    </div>
+
+    <!-- ✅ الحسابات -->
+    <div class="accounts">
+      <!-- حساب الترفيه يبقى كما هو دائماً -->
+      <form method="post">
+        <button type="submit" name="action" value="savings" class="account-card">
+          <h3>حساب الترفيه</h3>
+          
+        </button>
+      </form>
+
+      <!-- ✅ حساب مغلق: يظهر فقط إذا فيه سجل في جدول accounts (يعني المستخدم اختار نعم) -->
+      <?php if ($has_locked_account): ?>
+      <form method="post">
+        <button type="submit" name="action" value="locked" class="account-card">
+          <h3>حساب مغلق</h3>
+         
+        </button>
+      </form>
+      <?php endif; ?>
+    </div>
+
+  </div>
   <script>
     function toggleMenu() {
         // هذه الدالة سليمة وتظهر القائمة
