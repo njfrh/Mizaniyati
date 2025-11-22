@@ -1,40 +1,39 @@
 <?php
+// 🛑 1. بدء الجلسة والتأكد من الاتصال بقاعدة البيانات
 session_start();
-require_once 'db.php'; // الاتصال بقاعدة البيانات
+require_once 'db.php'; 
 
-
-$user_id = $_SESSION['user_id'];
-$errors = [];
-$success = '';
-
-require_once 'db.php'; // الاتصال بقاعدة البيانات
-$user_id = $_SESSION['user_id'];
-// ... باقي الكود ... 
-
-$user_id = $_SESSION['user_id']; // الآن نستخدم القيمة التي ضمنّا وجودها
-// ... باقي الكود
-$users_id = $_SESSION['users_id'];
-$errors = [];
-$success = '';
-
-function fetch_users_data($conn, $users_id) {
-    // 1. نجلب البيانات من جدول users (الاسم، الإيميل)
-    $stmt = $conn->prepare('SELECT name, email, password_hash FROM users WHERE id = ?');
-    $stmt->execute([$users_id]);
-    
-
-    
-    // دمج البيانات
-    if ($users) {
-        // نضمن إعادة قيم افتراضية إذا لم يكن هناك ملف شخصي في جدول user_profile
-        return array_merge($users, $profile ?: ['salary' => 0, 'occupation' => '']);
-    }
-    return false;
+// التحقق من تسجيل الدخول
+if (!isset($_SESSION['user_id'])) {
+    header('Location: auth.php?tab=login');
+    exit;
 }
 
-$users_data = fetch_users_data($conn, $users_id);
+// استخدام متغير واحد وواضح لمعرف المستخدم
+$user_id = $_SESSION['user_id'];
+$errors = [];
+$success = '';
 
-/* ================== معالجة التعديل ================== */
+// 2. جلب بيانات المستخدم الحالية (الاسم، الإيميل، وهاش كلمة المرور)
+$stmt = $conn->prepare('SELECT name, email, password_hash FROM users WHERE id = ?');
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user_data = $result->fetch_assoc();
+$stmt->close();
+
+// في حال عدم وجود بيانات (خطأ نادر)
+if (!$user_data) {
+    session_destroy();
+    header('Location: auth.php?tab=login');
+    exit;
+}
+
+$current_name = $user_data['name'];
+$current_email = $user_data['email'];
+$current_hash = $user_data['password_hash'];
+
+/* ================== 3. معالجة التعديل (المعلومات الشخصية وكلمة المرور) ================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -43,49 +42,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $new_email = trim($_POST['new_email'] ?? '');
 
         if (empty($new_name) || empty($new_email)) {
-            $errors[] = 'الاسم والإيميل مطلوبان.';
+            $errors[] = 'الاسم والبريد الإلكتروني مطلوبان.';
         } elseif (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'صيغة البريد الإلكتروني غير صالحة.';
         } else {
             // التحقق من أن الإيميل غير مستخدم من قبل مستخدم آخر
             $stmt = $conn->prepare('SELECT id FROM users WHERE email = ? AND id != ?');
-            $stmt->execute([$new_email, $user_id]);
-            if ($stmt->fetch()) {
+            $stmt->bind_param('si', $new_email, $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
                 $errors[] = 'هذا البريد الإلكتروني مستخدم بالفعل من قبل حساب آخر.';
             } else {
                 // تحديث المعلومات
                 $stmt = $conn->prepare('UPDATE users SET name = ?, email = ? WHERE id = ?');
-                $stmt->execute([$new_name, $new_email, $user_id]);
+                $stmt->bind_param('ssi', $new_name, $new_email, $user_id);
+                $stmt->execute();
                 
-                // تحديث الجلسة والصفحة
+                // تحديث الجلسة والمتغيرات المحلية لعرض التغيير فوراً
                 $_SESSION['user_name'] = $new_name;
-                $success = 'تم تحديث المعلومات بنجاح!';
                 $current_name = $new_name;
                 $current_email = $new_email;
+                $success = 'تم تحديث المعلومات بنجاح!';
             }
+            $stmt->close();
         }
     } elseif ($action === 'update_password') {
         $current_password = $_POST['current_password'] ?? '';
         $new_password = $_POST['new_password'] ?? '';
         $new_password_confirm = $_POST['new_password_confirm'] ?? '';
 
-        // جلب الهاش الحالي
-        $stmt = $conn->prepare('SELECT password_hash FROM users WHERE id = ?');
-        $stmt->execute([$user_id]);
-        $user_data = $stmt->fetch();
-        $hash = $user_data['password_hash'];
-
-        if (!password_verify($current_password, $hash)) {
+        if (!password_verify($current_password, $current_hash)) {
             $errors[] = 'كلمة المرور الحالية غير صحيحة.';
         } elseif (strlen($new_password) < 8) {
             $errors[] = 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل.';
         } elseif ($new_password !== $new_password_confirm) {
             $errors[] = 'كلمة المرور الجديدة وتأكيدها غير متطابقتين.';
         } else {
+            // تحديث كلمة المرور
             $new_hash = password_hash($new_password, PASSWORD_BCRYPT);
             $stmt = $conn->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
-            $stmt->execute([$new_hash, $user_id]);
+            $stmt->bind_param('si', $new_hash, $user_id);
+            $stmt->execute();
+            
+            // تحديث الهاش الحالي في حال قام المستخدم بتحديث كلمة المرور مرة أخرى قبل تحديث الصفحة
+            $current_hash = $new_hash; 
             $success = 'تم تحديث كلمة المرور بنجاح!';
+            $stmt->close();
         }
     }
 }
@@ -113,15 +117,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
- <a href="dashboard1.php" class="back-link">← الرجوع إلى الرصيد الإجمالي</a>
+    <a href="dashboard1.php" class="back-link">← الرجوع إلى الرصيد الإجمالي</a>
     
-
     <div class="container">
-        <h2>👤 المعلومات الشخصية</h2>
-        ```
-
-    <div class="container">
-        <h2>الملف الشخصي والإعدادات</h2>
+        <h2>👤 الملف الشخصي والإعدادات</h2>
 
         <?php if ($success): ?><div class="message success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
         <?php if ($errors): ?><div class="message error"><?= implode('<br>', array_map('htmlspecialchars', $errors)) ?></div><?php endif; ?>
