@@ -24,7 +24,56 @@ if ($has_locked_account) {
     $locked_balance = (float)$locked_row['balance'];
 }
 // لو اختار "لا" في الإعداد → ما ينشأ حساب مغلق أصلاً → $has_locked_account = false
+// ... بعد جلب $locked_balance
 
+/* 🛑 ✅ الإضافات الجديدة: جلب وتحليل مصروفات الشهر الحالي */
+$current_month = date('Y-m-01'); // بداية الشهر الحالي (مثل: 2025-11-01)
+
+// 1. إجمالي المصروفات لهذا الشهر
+// نجمع المبالغ السالبة فقط (المصروفات) التي حدثت هذا الشهر
+$sql_total_spent = "SELECT SUM(amount) AS total_spent 
+                    FROM transactions 
+                    WHERE user_id = ? 
+                    AND amount < 0 
+                    AND created_at >= ?";
+$stmt_total_spent = $conn->prepare($sql_total_spent);
+$stmt_total_spent->bind_param("is", $user_id, $current_month);
+$stmt_total_spent->execute();
+$result_total_spent = $stmt_total_spent->get_result();
+$total_spent_row = $result_total_spent->fetch_assoc();
+// القيمة ستكون سالبة (مثل -500.00)، نأخذ القيمة المطلقة لعرضها
+$monthly_expense_total = abs($total_spent_row['total_spent'] ?? 0);
+$stmt_total_spent->close();
+
+
+// 2. المصروفات حسب التصنيف (ضرورية، يومية، شهرية)
+$sql_category_spent = "SELECT account_type, SUM(amount) AS category_spent 
+                       FROM transactions 
+                       WHERE user_id = ? 
+                       AND amount < 0 
+                       AND created_at >= ?
+                       AND account_type IN ('ضرورية', 'يومية', 'شهرية')
+                       GROUP BY account_type";
+$stmt_category_spent = $conn->prepare($sql_category_spent);
+$stmt_category_spent->bind_param("is", $user_id, $current_month);
+$stmt_category_spent->execute();
+$result_category_spent = $stmt_category_spent->get_result();
+
+$category_expenses = [
+    'ضرورية' => 0,
+    'يومية' => 0,
+    'شهرية' => 0,
+    'الإجمالي' => $monthly_expense_total // لإيجاد النسبة المئوية
+];
+
+while ($row = $result_category_spent->fetch_assoc()) {
+    // نستخدم القيمة المطلقة للمصروفات لسهولة العرض
+    $category_expenses[$row['account_type']] = abs($row['category_spent']);
+}
+$stmt_category_spent->close();
+/* 🛑 نهاية الإضافات الجديدة */
+
+// ... بقية كود PHP أو HTML يبدأ من هنا
 // معالجة الأزرار
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -120,14 +169,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <!-- ✅ الحسابات -->
-    <div class="accounts">
+     <!-- <div class="accounts"> -->
       <!-- حساب الترفيه يبقى كما هو دائماً -->
-      <form method="post">
+     <!-- <form method="post">
         <button type="submit" name="action" value="savings" class="account-card">
           <h3>حساب الترفيه</h3>
           
         </button>
-      </form>
+      </form> -->
 
       <!-- ✅ حساب مغلق: يظهر فقط إذا فيه سجل في جدول accounts (يعني المستخدم اختار نعم) -->
       <?php if ($has_locked_account): ?>
@@ -139,8 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </form>
       <?php endif; ?>
     </div>
-
-  </div>
+      </div>
 </body>
 <style>
   body {

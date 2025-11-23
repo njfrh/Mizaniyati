@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $transactions = [];
 
-// 🛑 التعديل هنا: جلب عمود ID للتمكن من التعديل والحذف
+// 🛑 جلب ID، المبلغ، التعليق، نوع الحساب (الذي هو الآن نوع المشتريات)، وتاريخ الإنشاء
 $sql = "SELECT id, amount, comment, account_type, created_at FROM transactions WHERE user_id = ? ORDER BY created_at DESC";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $user_id); 
@@ -115,7 +115,7 @@ $stmt->close();
         display: flex;
         gap: 8px;
         margin-right: 15px;
-        flex-shrink: 0; /* لمنع الأزرار من الانضغاط */
+        flex-shrink: 0; 
     }
     .action-btn {
         padding: 6px 10px;
@@ -150,6 +150,7 @@ $stmt->close();
     <a href="dashboard1.php" class="back-link">← الرجوع إلى لوحة التحكم</a>
 
     <div class="container">
+        
         <h2>💰 إضافة معاملة سريعة</h2>
         
         <form action="add_transaction.php" method="post" class="add-form">
@@ -160,12 +161,12 @@ $stmt->close();
             <label for="comment-input">التعليق:</label>
             <input type="text" name="comment" id="comment-input" placeholder="مثل: قهوة من كوفي" required>
             
-            <label for="account-select">السحب من حساب:</label>
-            <select name="account_type" id="account-select" required>
-                <option value="إجمالي">الرصيد الإجمالي</option>
-                <option value="ترفيه">حساب الترفيه</option>
-                <option value="مغلق">الحساب المغلق</option>
-            </select>
+<label for="account-select">تصنيف المشتريات:</label>
+   <select name="account_type" id="account-select" required>
+     <option value="ضرورية">المشتريات الضرورية</option>
+     <option value="يومية">المشتريات اليومية</option>
+    <option value="شهرية">المشتريات الشهرية</option>
+        </select>
             
             <input type="hidden" name="action" value="subtract"> 
             <input type="hidden" name="section" value="يومية">
