@@ -24,7 +24,56 @@ if ($has_locked_account) {
     $locked_balance = (float)$locked_row['balance'];
 }
 // لو اختار "لا" في الإعداد → ما ينشأ حساب مغلق أصلاً → $has_locked_account = false
+// ... بعد جلب $locked_balance
 
+/* 🛑 ✅ الإضافات الجديدة: جلب وتحليل مصروفات الشهر الحالي */
+$current_month = date('Y-m-01'); // بداية الشهر الحالي (مثل: 2025-11-01)
+
+// 1. إجمالي المصروفات لهذا الشهر
+// نجمع المبالغ السالبة فقط (المصروفات) التي حدثت هذا الشهر
+$sql_total_spent = "SELECT SUM(amount) AS total_spent 
+                    FROM transactions 
+                    WHERE user_id = ? 
+                    AND amount < 0 
+                    AND created_at >= ?";
+$stmt_total_spent = $conn->prepare($sql_total_spent);
+$stmt_total_spent->bind_param("is", $user_id, $current_month);
+$stmt_total_spent->execute();
+$result_total_spent = $stmt_total_spent->get_result();
+$total_spent_row = $result_total_spent->fetch_assoc();
+// القيمة ستكون سالبة (مثل -500.00)، نأخذ القيمة المطلقة لعرضها
+$monthly_expense_total = abs($total_spent_row['total_spent'] ?? 0);
+$stmt_total_spent->close();
+
+
+// 2. المصروفات حسب التصنيف (ضرورية، يومية، شهرية)
+$sql_category_spent = "SELECT account_type, SUM(amount) AS category_spent 
+                       FROM transactions 
+                       WHERE user_id = ? 
+                       AND amount < 0 
+                       AND created_at >= ?
+                       AND account_type IN ('ضرورية', 'يومية', 'شهرية')
+                       GROUP BY account_type";
+$stmt_category_spent = $conn->prepare($sql_category_spent);
+$stmt_category_spent->bind_param("is", $user_id, $current_month);
+$stmt_category_spent->execute();
+$result_category_spent = $stmt_category_spent->get_result();
+
+$category_expenses = [
+    'ضرورية' => 0,
+    'يومية' => 0,
+    'شهرية' => 0,
+    'الإجمالي' => $monthly_expense_total // لإيجاد النسبة المئوية
+];
+
+while ($row = $result_category_spent->fetch_assoc()) {
+    // نستخدم القيمة المطلقة للمصروفات لسهولة العرض
+    $category_expenses[$row['account_type']] = abs($row['category_spent']);
+}
+$stmt_category_spent->close();
+/* 🛑 نهاية الإضافات الجديدة */
+
+// ... بقية كود PHP أو HTML يبدأ من هنا
 // معالجة الأزرار
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -58,6 +107,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <title>ميزانيتي</title>
+<body>
+  <div class="user-menu-container">
+
+    <div class="user-icon" onclick="toggleMenu()">
+
+        <img src="user_icon.jpg" alt="User Profile" class="profile-image">
+</div>
+    <div class="dropdown-menu" id="userDropdown">
+   <div class="menu-item header-name">مرحباً، <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'مستخدم'); ?></div>
+
+    <a href="profile.php" class="menu-item">
+        👤 المعلومات الشخصية
+    </a>
+    
+    <a href="rate_app.php" class="menu-item">
+        ⭐️ تقييم التطبيق
+    </a>
+    
+<a href="logout.php" class="menu-item exit">🚪 تسجيل الخروج</a>
+    </a>
+</div>
+</div>
+
+<div class="tabs">
+    <div class="tab active">الرصيد</div> 
+    
+    <a href="reports.php" class="tab-link"> 
+        <div class="tab">التقارير</div>
+    </a>
+</div>
+
+<style>
+    /* إضافة هذا التنسيق في CSS لضمان عدم وجود تنسيق غريب للرابط */
+    .tab-link {
+        text-decoration: none; /* إزالة الخط تحت الرابط */
+        color: inherit;      /* وراثة لون النص */
+    }
+</style>
+
+  <div class="content">
+    <div class="title">الرصيد الإجمالي</div>
+    <div class="balance">SAR <?= number_format($total_balance, 0) ?></div>
+
+    <div class="stats">
+      <form method="post" class="form-row">
+        <input type="number" name="amount" class="amount-box" placeholder="مبلغ" min="0">
+        <div class="circle">
+          <button type="submit" name="action" value="add">+</button>
+          <label>إضافة</label>
+        </div>
+      </form>
+
+      <form method="post" class="form-row">
+        <input type="number" name="amount" class="amount-box" placeholder="مبلغ" min="0">
+        <div class="circle">
+          <button type="submit" name="action" value="subtract">−</button>
+          <label>تقليل</label>
+        </div>
+      </form>
+    </div>
+
+    <!-- ✅ الحسابات -->
+     <!-- <div class="accounts"> -->
+      <!-- حساب الترفيه يبقى كما هو دائماً -->
+     <!-- <form method="post">
+        <button type="submit" name="action" value="savings" class="account-card">
+          <h3>حساب الترفيه</h3>
+          
+        </button>
+      </form> -->
+
+      <!-- ✅ حساب مغلق: يظهر فقط إذا فيه سجل في جدول accounts (يعني المستخدم اختار نعم) -->
+      <?php if ($has_locked_account): ?>
+      <form method="post">
+        <button type="submit" name="action" value="locked" class="account-card">
+          <h3>حساب مغلق</h3>
+         
+        </button>
+      </form>
+      <?php endif; ?>
+    </div>
+      </div>
+</body>
 <style>
   body {
     margin: 0;
@@ -207,7 +339,211 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   button.account-card {
     background: none;
     border: none;
-  }
+  }<<<<<<< HEAD
+
+ 
+
+/* تنسيق أيقونة المستخدم والقائمة المنسدلة */
+
+.user-menu-container {
+
+    position: relative;
+
+    top: 20px;
+
+    left: 20px;
+
+    z-index: 1000;
+
+}
+
+
+
+.user-icon {
+
+    width: 36px; /* **تم تصغير العرض هنا** */
+
+    height: 36px; /* **تم تصغير الارتفاع هنا** */
+
+    background-color: #f0f0f0;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    cursor: pointer;
+
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); /* ظل أصغر */
+
+    padding: 2px; /* تصغير الـ padding */
+
+    overflow: hidden;
+
+    transition: transform 0.2s;
+
+}
+
+
+
+.menu-item:hover {
+
+    background-color: #f0f0f0;
+
+}
+
+/* هذا هو التعديل الأساسي لضمان عدم التظليل عند مرور الماوس */
+
+.menu-item.header-name:hover {
+
+    background-color: transparent; /* إلغاء لون الخلفية عند التمرير */
+
+}
+
+
+
+/* للتأكد من أن المؤشر لا يظهر كـ 'يد' */
+
+.menu-item.header-name {
+
+    cursor: default;
+
+}
+
+.profile-image {
+
+    width: 100%;
+
+    height: 100%;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+}
+
+
+
+/* يجب تعديل مكان القائمة المنسدلة ليتناسب مع الحجم الجديد */
+
+.dropdown-menu {
+
+    position: absolute;
+
+    top: 55px; /* تم تعديل المسافة من الأعلى: 36px (حجم الأيقونة) + 9px (مسافة) */
+
+    right: 0;
+
+    background: #fff;
+
+    border-radius: 12px;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+
+    width: 200px;
+
+    overflow: hidden;
+
+    padding: 10px 0;
+
+    display: none;
+
+    text-align: right;
+
+    direction: rtl;
+
+}
+
+.dropdown-menu {
+
+    position: absolute;
+
+    top: 55px;
+
+    left: 0; /* يبدأ من تحت الأيقونة مباشرة */
+
+    background: #fff;
+
+    border-radius: 12px;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+
+    width: 200px;
+
+    overflow: hidden;
+
+    padding: 10px 0;
+
+    display: none; /* يتم إخفاؤها مبدئياً */
+
+    text-align: right;
+
+    direction: rtl;
+
+}
+
+
+
+.dropdown-menu.show {
+
+    display: block;
+
+}
+
+
+
+.menu-item {
+
+    display: block;
+
+    padding: 10px 15px;
+
+    text-decoration: none;
+
+    color: #333;
+
+    font-size: 14px;
+
+    transition: background-color 0.2s;
+
+    cursor: pointer;
+
+}
+
+
+
+.menu-item:hover {
+
+    background-color: #f0f0f0;
+
+}
+
+
+
+.menu-item.header-name {
+
+    font-weight: bold;
+
+    color: #101826;
+
+    border-bottom: 1px solid #eee;
+
+    margin-bottom: 5px;
+
+    cursor: default;
+
+}
+
+
+
+.menu-item.logout {
+
+    color: #dc3545; /* لون أحمر لتسجيل الخروج */
+}
+=======
   .account-card {
 width: 250px !important;
 height: 90px !important;
@@ -218,65 +554,32 @@ justify-content: center;
 align-items: center;
 }
 
+>>>>>>> f6ceebf7a42516279b1345742b8239e29172b07a
 </style>
 </head>
+
 <body>
 
-  <div class="topbar">
-    
-    <h1>ميزانيتي</h1>
-    
-  </div>
+ 
+  <script>
+    function toggleMenu() {
+        // هذه الدالة سليمة وتظهر القائمة
+        document.getElementById('userDropdown').classList.toggle('show');
+    }
 
-  <div class="tabs">
-    <div class="tab active">الرصيد</div>
-    <div class="tab">التقارير</div>
-    
-  </div>
-
-  <div class="content">
-    <div class="title">الرصيد الإجمالي</div>
-    <div class="balance">SAR <?= number_format($total_balance, 0) ?></div>
-
-    <div class="stats">
-      <form method="post" class="form-row">
-        <input type="number" name="amount" class="amount-box" placeholder="مبلغ" min="0">
-        <div class="circle">
-          <button type="submit" name="action" value="add">+</button>
-          <label>إضافة</label>
-        </div>
-      </form>
-
-      <form method="post" class="form-row">
-        <input type="number" name="amount" class="amount-box" placeholder="مبلغ" min="0">
-        <div class="circle">
-          <button type="submit" name="action" value="subtract">−</button>
-          <label>تقليل</label>
-        </div>
-      </form>
-    </div>
-
-    <!-- ✅ الحسابات -->
-    <div class="accounts">
-      <!-- حساب الترفيه يبقى كما هو دائماً -->
-      <form method="post">
-        <button type="submit" name="action" value="savings" class="account-card">
-          <h3>حساب الترفيه</h3>
-          
-        </button>
-      </form>
-
-      <!-- ✅ حساب مغلق: يظهر فقط إذا فيه سجل في جدول accounts (يعني المستخدم اختار نعم) -->
-      <?php if ($has_locked_account): ?>
-      <form method="post">
-        <button type="submit" name="action" value="locked" class="account-card">
-          <h3>حساب مغلق</h3>
-         
-        </button>
-      </form>
-      <?php endif; ?>
-    </div>
-
-  </div>
+    // إغلاق القائمة عند الضغط خارجها
+    window.onclick = function(event) {
+        // التحقق مما إذا كان النقر لم يكن داخل حاوية القائمة المنسدلة بالكامل
+        if (!event.target.closest('.user-menu-container')) {
+            var dropdowns = document.getElementsByClassName("dropdown-menu");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+</script>
 </body>
 </html>
