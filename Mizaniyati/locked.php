@@ -56,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->close();
 
                 $success_message = "تم الصرف من الحساب المغلق بنجاح.";
-                
             }
         }
 
@@ -116,8 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute();
                     $stmt->close();
 
-                   $success_message = "تم إضافة المبلغ إلى الحساب المغلق.";
-                   
+                    $success_message = "تم إضافة المبلغ إلى الحساب المغلق.";
                 }
             }
         }
@@ -146,14 +144,17 @@ if ($salary <= 0) {
     }
 }
 
-// 3) الرصيد الإجمالي
+// 3) الرصيد الإجمالي الحالي
 $total_balance = get_balance($conn, $user_id, 'إجمالي');
-// تحديث الراتب بناءً على الرصيد الإجمالي الجديد (في بداية الشهر)
-if ($total_balance > 0) {
-    $_SESSION['monthly_salary'] = $total_balance;
+
+// ✅ لو الرصيد الحالي أكبر من الراتب المخزون نعتبره راتب جديد ونحدثه
+if ($total_balance > 0 && $total_balance > $salary) {
+    $salary = $total_balance;
+
+    $_SESSION['monthly_salary'] = $salary;
 
     $stmt = $conn->prepare("UPDATE settings SET monthly_salary = ? WHERE user_id = ?");
-    $stmt->bind_param("di", $total_balance, $user_id);
+    $stmt->bind_param("di", $salary, $user_id);
     $stmt->execute();
     $stmt->close();
 }

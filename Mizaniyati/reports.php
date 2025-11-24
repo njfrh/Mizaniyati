@@ -11,6 +11,17 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $transactions = [];
 
+// ✅ جلب / إنشاء حساب الرصيد الإجمالي
+$check = $conn->query("SELECT balance FROM accounts WHERE user_id = $user_id AND account_type = 'إجمالي'");
+if ($check->num_rows == 0) {
+    $conn->query("INSERT INTO accounts (user_id, account_type, balance) VALUES ($user_id, 'إجمالي', 0)");
+    $check = $conn->query("SELECT balance FROM accounts WHERE user_id = $user_id AND account_type = 'إجمالي'");
+}
+
+$row = $check->fetch_assoc() ?? ['balance' => 0];
+$total_balance = (float)$row['balance'];
+
+
 // 🛑 جلب ID، المبلغ، التعليق، نوع الحساب (الذي هو الآن نوع المشتريات)، وتاريخ الإنشاء
 $sql = "SELECT id, amount, comment, account_type, created_at FROM transactions WHERE user_id = ? ORDER BY created_at DESC";
 $stmt = $conn->prepare($sql);
@@ -36,6 +47,18 @@ $stmt->close();
     .container { max-width: 900px; margin: 30px auto; background:#fff; border-radius:14px; padding:30px; box-shadow:0 8px 24px rgba(0,0,0,.08); }
     h2 { text-align:center; color:#101826; margin-bottom:30px; }
     .back-link { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #101826; font-weight: 600; }
+
+    /* 🔴 رسالة الخطأ */
+    .error-msg {
+        background-color: #ffe5e5;
+        color: #b00020;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+    }
 
     /* ------------------ تنسيق نموذج الإضافة ------------------ */
     .add-form { 
@@ -146,27 +169,36 @@ $stmt->close();
 
 </style>
 </head>
-<body>  
+<body>  
     <a href="dashboard1.php" class="back-link">← الرجوع إلى لوحة التحكم</a>
 
     <div class="container">
         
-        <h2>💰 إضافة معاملة سريعة</h2>
+        <h2>الرصيد الإجمالي: <?php echo number_format($total_balance); ?> SAR 🪙</h2>
+
+        <?php if (!empty($_SESSION['error'])): ?>
+            <div class="error-msg">
+                <?php 
+                    echo $_SESSION['error'];
+                    unset($_SESSION['error']);
+                ?>
+            </div>
+        <?php endif; ?>
         
         <form action="add_transaction.php" method="post" class="add-form">
             
             <label for="amount-input">المبلغ:</label>
-            <input type="number" name="amount" id="amount-input" placeholder="SAR" min="0.01" step="0.01" required>
+            <input type="number" name="amount" id="amount-input" value="..." min="1" step="1" required>
 
             <label for="comment-input">التعليق:</label>
             <input type="text" name="comment" id="comment-input" placeholder="مثل: قهوة من كوفي" required>
             
-<label for="account-select">تصنيف المشتريات:</label>
-   <select name="account_type" id="account-select" required>
-     <option value="ضرورية">المشتريات الضرورية</option>
-     <option value="يومية">المشتريات اليومية</option>
-    <option value="شهرية">المشتريات الشهرية</option>
-        </select>
+            <label for="account-select">تصنيف المشتريات:</label>
+            <select name="account_type" id="account-select" required>
+                <option value="ضرورية">المشتريات الضرورية</option>
+                <option value="يومية">المشتريات اليومية</option>
+                <option value="شهرية">المشتريات الشهرية</option>
+            </select>
             
             <input type="hidden" name="action" value="subtract"> 
             <input type="hidden" name="section" value="يومية">
@@ -187,7 +219,7 @@ $stmt->close();
                 <?php 
                     $is_income = $t['amount'] > 0;
                     $display_amount = number_format(abs($t['amount']), 2); 
-                    $sign = $is_income ? '+' : '-';
+                    $sign = $is_income ? '-' : '-';
                 ?>
                 <div class="transaction-box <?= $is_income ? 'income' : 'expense' ?>">
                     
@@ -196,7 +228,7 @@ $stmt->close();
                     </div>
                     
                     <div class="details">
-                        <span class="amount-value" style="color: <?= $is_income ? '#0b7a3b' : '#dc3545' ?>;">
+                        <span class="amount-value" style="color: <?= $is_income ? '#ff0303ff' : '#ff0019ff' ?>;">
                             <?= $sign . $display_amount ?> SAR
                         </span>
                         
@@ -209,9 +241,13 @@ $stmt->close();
                         </span>
 
                         <div class="actions">
-                            <a href="edit_transaction.php?id=<?= htmlspecialchars($t['id']) ?>" class="action-btn edit-btn">تعديل</a>
-                            <button onclick="confirmDelete(<?= htmlspecialchars($t['id']) ?>)" class="action-btn delete-btn">حذف</button>
-                        </div>
+    <?php if ($t['account_type'] !== 'مغلق'): ?>
+        <a href="edit_transaction.php?id=<?= htmlspecialchars($t['id']) ?>" class="action-btn edit-btn">تعديل</a>
+    <?php endif; ?>
+
+    <button onclick="confirmDelete(<?= htmlspecialchars($t['id']) ?>)" class="action-btn delete-btn">حذف</button>
+</div>
+
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -222,7 +258,6 @@ $stmt->close();
     <script>
     function confirmDelete(id) {
         if (confirm("هل أنت متأكد من حذف هذه العملية؟ سيتم تعديل رصيد حسابك.")) {
-            // إنشاء نموذج (Form) ديناميكياً لإرسال طلب POST
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = 'delete_transaction.php';
