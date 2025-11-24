@@ -136,6 +136,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="reports.php" class="tab-link"> 
         <div class="tab">التقارير</div>
     </a>
+
+     <a href="api_ai.php" class="tab-link"> 
+        <div class="tab">الذكاء الاصطناعي</div>
+    </a>
 </div>
 
 <style>
