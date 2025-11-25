@@ -14,8 +14,8 @@ $user_id = $_SESSION['user_id'];
 $errors = [];
 $success = '';
 
-// 2. جلب بيانات المستخدم الحالية (الاسم، الإيميل، وهاش كلمة المرور)
-$stmt = $conn->prepare('SELECT name, email, password_hash FROM users WHERE id = ?');
+// 2. جلب بيانات المستخدم الحالية (الاسم، الإيميل)
+$stmt = $conn->prepare('SELECT name, email FROM users WHERE id = ?');
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -31,9 +31,8 @@ if (!$user_data) {
 
 $current_name = $user_data['name'];
 $current_email = $user_data['email'];
-$current_hash = $user_data['password_hash'];
 
-/* ================== 3. معالجة التعديل (المعلومات الشخصية وكلمة المرور) ================== */
+/* ================== 3. معالجة التعديل (الاسم والبريد فقط) ================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -60,35 +59,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param('ssi', $new_name, $new_email, $user_id);
                 $stmt->execute();
                 
-                // تحديث الجلسة والمتغيرات المحلية لعرض التغيير فوراً
                 $_SESSION['user_name'] = $new_name;
                 $current_name = $new_name;
                 $current_email = $new_email;
                 $success = 'تم تحديث المعلومات بنجاح!';
             }
-            $stmt->close();
-        }
-    } elseif ($action === 'update_password') {
-        $current_password = $_POST['current_password'] ?? '';
-        $new_password = $_POST['new_password'] ?? '';
-        $new_password_confirm = $_POST['new_password_confirm'] ?? '';
-
-        if (!password_verify($current_password, $current_hash)) {
-            $errors[] = 'كلمة المرور الحالية غير صحيحة.';
-        } elseif (strlen($new_password) < 8) {
-            $errors[] = 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل.';
-        } elseif ($new_password !== $new_password_confirm) {
-            $errors[] = 'كلمة المرور الجديدة وتأكيدها غير متطابقتين.';
-        } else {
-            // تحديث كلمة المرور
-            $new_hash = password_hash($new_password, PASSWORD_BCRYPT);
-            $stmt = $conn->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
-            $stmt->bind_param('si', $new_hash, $user_id);
-            $stmt->execute();
-            
-            // تحديث الهاش الحالي في حال قام المستخدم بتحديث كلمة المرور مرة أخرى قبل تحديث الصفحة
-            $current_hash = $new_hash; 
-            $success = 'تم تحديث كلمة المرور بنجاح!';
             $stmt->close();
         }
     }
@@ -125,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($success): ?><div class="message success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
         <?php if ($errors): ?><div class="message error"><?= implode('<br>', array_map('htmlspecialchars', $errors)) ?></div><?php endif; ?>
 
+        <!-- حفظ الاسم والإيميل فقط -->
         <form method="post">
             <input type="hidden" name="action" value="update_info">
             <div class="field-group">
@@ -140,29 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </form>
 
-        <form method="post">
-            <input type="hidden" name="action" value="update_password">
-            <div class="field-group">
-                <h3>تغيير كلمة المرور</h3>
-                
-                <label>كلمة المرور الحالية:</label>
-                <input type="password" name="current_password" required>
-                
-                <label>كلمة المرور الجديدة (8 أحرف حد أدنى):</label>
-                <input type="password" name="new_password" minlength="8" required>
-                
-                <label>تأكيد كلمة المرور الجديدة:</label>
-                <input type="password" name="new_password_confirm" required>
-                
-                <button class="btn" type="submit">تغيير كلمة المرور</button>
-            </div>
-        </form>
-        
-        <div class="field-group">
-            <h3>إعدادات إضافية</h3>
-            <p><strong>التقييمات:</strong> يمكنك تقييم التطبيق لدعمنا! <a href="rate_app.php" class="back-link" style="color: #007bff;">⭐</a></p>
-            <a href="rate_app.php" class="back-link" style="color: #007bff;"> تقييم التطبيق</a>
-        </div>
     </div>
 </body>
 </html>

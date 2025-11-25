@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </a>
 
      <a href="api_ai.php" class="tab-link"> 
-        <div class="tab">الذكاء الاصطناعي</div>
+        <div class="tab">المساعد الذكي</div>
     </a>
 </div>
 
@@ -315,8 +315,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     width: 150px;
     padding: 15px;
     border-radius: 10px;
-    background-color: #fff;
-    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    background-color: #dcd5d5ff;
+    box-shadow: 0 0 5px rgba(68, 23, 23, 0.1);
     cursor: pointer;
     transition: 0.2s;
     text-align: center;
