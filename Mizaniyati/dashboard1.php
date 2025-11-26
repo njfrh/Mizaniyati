@@ -309,17 +309,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     justify-content: center;
     gap: 15px;
     flex-wrap: wrap;
-    margin-top: 40px;
+    margin-top: 50px;
   }
   .account-card {
-    width: 150px;
-    padding: 15px;
+    width: 180px;
+    padding: 25px;
     border-radius: 10px;
     background-color: #dcd5d5ff;
     box-shadow: 0 0 5px rgba(68, 23, 23, 0.1);
     cursor: pointer;
     transition: 0.2s;
     text-align: center;
+    margin-top: 29px;
   }
   .account-card:hover {
     background-color: #f5f5f5;

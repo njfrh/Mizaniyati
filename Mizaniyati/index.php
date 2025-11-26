@@ -21,7 +21,7 @@ if (isset($_SESSION['user_id'])) {
     <style>
         /* تنسيق الشاشة */
         body {
-            background-color: #f4f5f7; /* لون الخلفية مطابق للخلفية في ملف auth.php */
+            background-color: #ffffffff; /* لون الخلفية مطابق للخلفية في ملف auth.php */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -39,6 +39,7 @@ if (isset($_SESSION['user_id'])) {
         .logo {
             width: 140px; /* حجم الشعار */
             height: auto;
+          
         }
         h1 {
             font-weight: 800;
