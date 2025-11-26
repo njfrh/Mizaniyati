@@ -8,121 +8,142 @@ $user_id = $_SESSION['user_id'] ?? 'guest';
 <meta charset="UTF-8">
 <title>🤖 مساعد ميزانيتي</title>
 <style>
-  body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: #e5e5e5;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    padding: 20px 0;
-  }
+ body {
+  margin: 0;
+  background: linear-gradient(135deg, #2AB7A9, #1E8E82 65%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  font-family: "Cairo", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
 
-  #back-btn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #101826;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    z-index: 1000;
-    transition: 0.3s;
-  }
-  #back-btn:hover { background: #0d1420; }
+#back-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #116B63;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  z-index: 1000;
+  transition: 0.25s;
+}
+#back-btn:hover {
+  background: #2AB7A9;
+}
 
-  .container {
-    background: #fff;
-    width: 500px;
-    max-width: 95%;
-    height: 700px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
-  }
+.container {
+  background: #fff;
+  width: 500px;
+  max-width: 95%;
+  height: 700px;
+  border-radius: 22px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  animation: fadeIn .5s ease;
+}
 
-  .topbar {
-    background: #101826;
-    color: #fff;
-    font-size: 20px;
-    font-weight: bold;
-    padding: 14px;
-    text-align: center;
-  }
+.topbar {
+  background: #116B63;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  padding: 16px;
+  text-align: center;
+}
 
-  #chat {
-    flex: 1;
-    background: #f9f9f9;
-    padding: 15px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+#chat {
+  flex: 1;
+  background: #f0fdfb;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-  .msg {
-    padding: 10px 15px;
-    border-radius: 14px;
-    max-width: 70%;
-    word-wrap: break-word;
-    font-size: 14px;
-    line-height: 1.4;
-  }
+.msg {
+  padding: 12px 16px;
+  border-radius: 16px;
+  max-width: 70%;
+  word-wrap: break-word;
+  font-size: 14px;
+  line-height: 1.4;
+}
 
-  .user {
-    background: #101826;
-    color: #fff;
-    align-self: flex-end;
-    border-bottom-right-radius: 0;
-  }
+.user {
+  background: #2AB7A9;
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
 
-  .ai {
-    background: #d1f0e0;
-    color: #0b7a3b;
-    align-self: flex-start;
-    border-bottom-left-radius: 0;
-  }
+.ai {
+  background: #e6ffef;
+  color: #0c7b35;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
 
-  .input-box {
-    display: flex;
-    gap: 10px;
-    padding: 12px;
-    border-top: 1px solid #eee;
-    background: #fff;
-  }
+.input-box {
+  display: flex;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid #c8e9e6;
+  background: #fff;
+}
 
-  input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-  }
+input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1.7px solid #c8e9e6;
+  font-size: 15px;
+  outline: none;
+  transition: 0.25s;
+}
 
-  button {
-    padding: 10px 16px;
-    border: none;
-    border-radius: 8px;
-    background: #101826;
-    color: #fff;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
-    transition: 0.3s;
-  }
+input:focus {
+  border-color: #2AB7A9;
+  box-shadow: 0 0 0 3px rgba(42,183,169,0.20);
+}
 
-  button:hover { background: #0d1420; }
+button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: #2AB7A9;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 15px;
+  transition: 0.25s;
+}
+
+button:hover {
+  background: #1E8E82;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>
 </head>
 <body>
 
-<button id="back-btn" onclick="goBack()">رجوع</button>
+<button id="back-btn" onclick="goBack()">الرجوع للرصيد</button>
 
 <div class="container">
   <div class="topbar">🤖 مساعد ميزانيتي</div>

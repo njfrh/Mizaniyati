@@ -127,40 +127,184 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Mizaniyati — Auth</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    body { background:#f4f5f7; margin:0; display:flex; min-height:100vh; align-items:center; justify-content:center; }
-    .card { width: 360px; background:#fff; border-radius:14px; padding:22px 20px 26px; box-shadow:0 8px 24px rgba(0,0,0,.08); }
-    .brand { text-align:center; font-weight:800; font-size:22px; margin-bottom:6px; }
-    .tabs { display:flex; gap:6px; background:#f0f2f5; padding:6px; border-radius:10px; margin:10px 0 18px; }
-    .tab-btn { flex:1; border:0; padding:10px; border-radius:8px; background:transparent; cursor:pointer; font-weight:600; }
-    .tab-btn.active { background:#101826; color:#fff; }
-    .hint { text-align:center; color:#666; font-size:12px; margin-bottom:14px; }
-    .field { margin-bottom:12px; }
-    label { display:block; font-size:12px; color:#333; margin-bottom:6px; }
-    input { width:100%; height:40px; border:1px solid #dcdfe4; border-radius:8px; padding:0 12px; }
-    .btn { width:100%; height:42px; border:0; border-radius:10px; background:#101826; color:#fff; font-weight:700; cursor:pointer; }
-    .alt { text-align:center; font-size:12px; margin-top:10px; }
-    .err { background:#ffe9e9; color:#a40000; padding:10px; border-radius:8px; margin-bottom:10px; font-size:13px; }
-    .ok { background:#e8fff1; color:#0b7a3b; padding:10px; border-radius:8px; margin-bottom:10px; font-size:13px; }
-    .hidden { display:none; }
+  * {
+  box-sizing: border-box;
+  font-family: "Cairo", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
 
-    .password-wrapper {
-      position: relative;
-      width: 100%;
-    }
-    .password-wrapper input {
-      padding-right: 40px;
-    }
-    .toggle-password {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      user-select: none;
-      font-size: 14px;
-      color:#555;
-    }
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #2AB7A9, #1E8E82 65%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* ===== بطاقة المصادقة ===== */
+.card {
+  width: 380px;
+  background: #fff;
+  border-radius: 22px;
+  padding: 32px 28px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+  animation: fadeIn .5s ease;
+}
+
+/* ===== Logo / Brand ===== */
+.brand {
+  text-align: center;
+  font-weight: 800;
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #116B63;
+}
+
+/* ===== Tabs ===== */
+.tabs {
+  display: flex;
+  gap: 8px;
+  background: #e6f7f5;
+  padding: 7px;
+  border-radius: 14px;
+  margin: 18px 0 20px;
+}
+
+.tab-btn {
+  flex: 1;
+  border: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 15px;
+  color: #116B63;
+  transition: .25s;
+}
+
+.tab-btn.active {
+  background: #2AB7A9;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+/* ===== Forms ===== */
+.hint {
+  text-align: center;
+  color: #667;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.field {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  color: #116B63;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+input {
+  width: 100%;
+  height: 46px;
+  border: 1.7px solid #c8e9e6;
+  border-radius: 12px;
+  padding: 0 14px;
+  font-size: 15px;
+  transition: .25s;
+  outline: none;
+}
+
+input:focus {
+  border-color: #2AB7A9;
+  box-shadow: 0 0 0 3px rgba(42,183,169,0.20);
+}
+
+/* ===== زر أساسي ===== */
+.btn {
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: #2AB7A9;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: .25s;
+}
+
+.btn:hover {
+  background: #1E8E82;
+}
+
+/* ===== رسائل الخطأ والنّجاح ===== */
+.err, .ok {
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.err {
+  background: #ffe8e8;
+  color: #b10000;
+  border: 1px solid #ffb9b9;
+}
+
+.ok {
+  background: #e6ffef;
+  color: #0c7b35;
+  border: 1px solid #a1e9b9;
+}
+
+/* ===== نسيت كلمة المرور ===== */
+.alt a {
+  color: #2AB7A9;
+  font-weight: 600;
+  text-decoration: none;
+  transition: .25s;
+}
+
+.alt a:hover {
+  text-decoration: underline;
+}
+
+/* ===== آيقونة إظهار كلمة المرور ===== */
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 45px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 16px;
+  color: #1E8E82;
+}
+
+/* ===== إخفاء الستر ===== */
+.hidden {
+  display: none;
+}
+
+/* ===== الأنميشن ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
   </style>
 </head>
 <body>
