@@ -78,7 +78,7 @@ $allRatings = $conn->query("SELECT user_name, rating, comment, created_at FROM r
 <a href="dashboard1.php" class="back-link">← الرجوع إلى الرصيد الإجمالي</a>
 
     <div class="container">
-        <h2>⭐️ تقييم تطبيق ميزانيتي</h2>
+        <h2>⭐️ تقييم موقع ميزانيتي</h2>
 
         <?php if ($success): ?>
             <div class="message success"><?= htmlspecialchars($success) ?></div>
@@ -90,7 +90,7 @@ $allRatings = $conn->query("SELECT user_name, rating, comment, created_at FROM r
 
         <!-- فورم التقييم -->
         <form method="post">
-            <label style="text-align: center; margin-bottom: 20px;">الرجاء تقييم التطبيق من 1 إلى 5 نجوم:</label>
+            <label style="text-align: center; margin-bottom: 20px;">الرجاء تقييم الموقع من 1 إلى 5 نجوم:</label>
             
             <div class="star-rating">
                 <!-- شلت required من هنا -->

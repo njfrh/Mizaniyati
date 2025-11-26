@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </a>
     
     <a href="rate_app.php" class="menu-item">
-        ⭐️ تقييم التطبيق
+         ⭐️ تقييم  ميزانيتي
     </a>
     
 <a href="logout.php" class="menu-item exit">🚪 تسجيل الخروج</a>
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="tab active">الرصيد</div> 
     
     <a href="reports.php" class="tab-link"> 
-        <div class="tab">التقارير</div>
+        <div class="tab">المعاملات  </div>
     </a>
 
      <a href="api_ai.php" class="tab-link"> 
@@ -389,6 +389,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     overflow: hidden;
 
     transition: transform 0.2s;
+    
+    
+   
+
 
 }
 
