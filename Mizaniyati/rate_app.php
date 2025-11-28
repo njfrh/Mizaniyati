@@ -80,22 +80,24 @@ body {
         .star-rating label:hover,
         .star-rating label:hover ~ label { color: #ffc107; }
 
-.back-link { 
-        display: inline-block; 
-        text-decoration: none; 
-        color: #fff; 
-        font-weight: 600; 
-        padding: 10px 18px; /* تكبير بسيط */
-        background: #116B63; 
-        border-radius: 12px; /* توحيد الحواف الدائرية */
-        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-        position: fixed; 
-        top: 20px;
-        right: 20px;
-        z-index: 100;
-        transition: background 0.2s;
-    }
-    .back-link:hover { background: #0c5a53; }
+#back-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #116B63;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  z-index: 1000;
+  transition: 0.25s;
+}
+#back-btn:hover {
+  background: #2AB7A9;
+}
 
         /* جزء عرض التقييمات تحت */
         .ratings-list { text-align:right; margin-top:25px; }
@@ -108,7 +110,8 @@ body {
     </style>
 </head>
 <body>
-<a href="dashboard1.php" class="back-link">← الرجوع إلى لوحة التحكم</a>
+
+<button id="back-btn" onclick="goBack()">الرجوع للرصيد</button>
 
     <div class="container">
         <h2>⭐️ تقييم موقع ميزانيتي</h2>
@@ -174,5 +177,10 @@ body {
         </div>
 
     </div>
+    <script>
+function goBack() {
+  window.history.back();
+}
+</script>
 </body>
 </html>

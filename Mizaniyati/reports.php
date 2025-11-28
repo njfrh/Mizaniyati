@@ -66,23 +66,24 @@ $stmt->close();
     h2 { text-align: center; color: #101826; margin-bottom: 30px; font-weight: 700; }
     
     /* زر الرجوع للخلف */
-    .back-link { 
-        display: inline-block; 
-        margin-bottom: 25px; 
-        text-decoration: none; 
-        color: #fff; 
-        font-weight: 600; 
-        padding: 8px 15px; 
-        background: #116B63; 
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        position: fixed; /* تثبيت الزر في الزاوية */
-        top: 20px;
-        right: 20px;
-        z-index: 100;
-    }
-    .back-link:hover { background: #0c5a53; }
-
+ #back-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #116B63;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  z-index: 1000;
+  transition: 0.25s;
+}
+#back-btn:hover {
+  background: #2AB7A9;
+}
 
   /* ------------------ تنسيق نموذج الإضافة ------------------ */
   .add-form { 
@@ -237,8 +238,9 @@ $stmt->close();
 }
 </style>
 </head>
-<body>  
-    <a href="dashboard1.php" class="back-link">← الرجوع إلى لوحة التحكم</a>
+<body> 
+
+<button id="back-btn" onclick="goBack()">الرجوع للرصيد</button>
 
     <div class="container">
         
@@ -324,7 +326,11 @@ $stmt->close();
         <?php endif; ?>
     </div>
 
-    <script>
+
+<script>
+function goBack() {
+ window.location.href = 'dashboard1.php';
+    }
     function confirmDelete(id) {
         if (confirm("هل أنت متأكد من حذف هذه العملية؟ سيتم تعديل رصيد حسابك.")) {
             const form = document.createElement('form');
@@ -341,6 +347,6 @@ $stmt->close();
             form.submit();
         }
     }
-    </script>
+</script>
 </body>
 </html>

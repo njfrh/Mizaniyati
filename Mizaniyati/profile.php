@@ -77,23 +77,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     h2 { text-align: center; color: #101826; margin-bottom: 30px; font-weight: 800; }
     
     /* زر الرجوع للخلف */
-    .back-link { 
-        display: inline-block; 
-        text-decoration: none; 
-        color: #fff; 
-        font-weight: 600; 
-        padding: 8px 15px; 
-        background: #116B63; 
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        position: fixed; /* تثبيت الزر في الزاوية */
-        top: 20px;
-        right: 20px;
-        z-index: 100;
-        transition: background 0.2s;
-    }
-    .back-link:hover { background: #0c5a53; }
-
+   #back-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #116B63;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  z-index: 1000;
+  transition: 0.25s;
+}
+#back-btn:hover {
+  background: #2AB7A9;
+}
 
     /* ------------------ تنسيق النماذج والحقول (مستوحى من auth.php) ------------------ */
     .profile-form { 
@@ -166,9 +167,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 </style>
 </head>
-<body>  
+<body> 
 
-    <a href="dashboard1.php" class="back-link">← الرجوع الى لوحة التحكم</a>
+<button id="back-btn" onclick="goBack()">الرجوع للرصيد</button>
 
     <div class="container">
         <h2>👤 إعدادات الحساب</h2>
@@ -198,6 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             <button type="submit" name="action" value="update_profile" class="btn-primary">حفظ التغييرات</button>
         </form>
-    </div>
+    </div> 
+    <script>
+function goBack() {
+  window.history.back();
+}
+</script>
 </body>
 </html>
