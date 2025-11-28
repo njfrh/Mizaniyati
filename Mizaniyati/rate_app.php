@@ -44,10 +44,28 @@ $allRatings = $conn->query("SELECT user_name, rating, comment, created_at FROM r
     <title>تقييم ميزانيتي</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background:#f4f5f7; margin:0; padding:20px; direction:rtl; }
-        .container { max-width: 500px; margin: 30px auto; background:#fff; border-radius:14px; padding:30px; box-shadow:0 8px 24px rgba(0,0,0,.08); text-align: center;}
-        h2 { color:#101826; margin-bottom:20px; }
+ * { box-sizing: border-box; font-family: "Cairo", system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+body { 
+        margin: 0; 
+        /* الخلفية المتدرجة الموحدة */
+        background: linear-gradient(135deg, #2AB7A9, #1E8E82 65%);
+        display: flex; 
+        justify-content: center;
+        align-items: flex-start; /* نبدأ من الأعلى */
+        min-height: 100vh;
+        padding: 40px 20px; 
+        direction: rtl; 
+    }
+      .container { 
+        max-width: 500px; /* العرض الموحد */
+        width: 100%;
+        background: #fff; 
+        border-radius: 18px; 
+        padding: 30px; 
+        /* ظل كبير وواضح */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+   h2 { text-align: center; color: #101826; margin-bottom: 30px; font-weight: 800; }
         label { display:block; font-size:14px; color:#333; margin-bottom:6px; font-weight:600; text-align: right; }
         textarea { width:100%; min-height:100px; border:1px solid #dcdfe4; border-radius:8px; padding:12px; margin-bottom:10px; resize: vertical; }
         .btn { width:100%; height:42px; border:0; border-radius:10px; background:#00a87a; color:#fff; font-weight:700; cursor:pointer; margin-top:20px; }
@@ -62,7 +80,22 @@ $allRatings = $conn->query("SELECT user_name, rating, comment, created_at FROM r
         .star-rating label:hover,
         .star-rating label:hover ~ label { color: #ffc107; }
 
-        .back-link { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #101826; font-weight: 600; float: right; }
+.back-link { 
+        display: inline-block; 
+        text-decoration: none; 
+        color: #fff; 
+        font-weight: 600; 
+        padding: 10px 18px; /* تكبير بسيط */
+        background: #116B63; 
+        border-radius: 12px; /* توحيد الحواف الدائرية */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        position: fixed; 
+        top: 20px;
+        right: 20px;
+        z-index: 100;
+        transition: background 0.2s;
+    }
+    .back-link:hover { background: #0c5a53; }
 
         /* جزء عرض التقييمات تحت */
         .ratings-list { text-align:right; margin-top:25px; }
@@ -75,7 +108,7 @@ $allRatings = $conn->query("SELECT user_name, rating, comment, created_at FROM r
     </style>
 </head>
 <body>
-<a href="dashboard1.php" class="back-link">← الرجوع إلى الرصيد الإجمالي</a>
+<a href="dashboard1.php" class="back-link">← الرجوع إلى لوحة التحكم</a>
 
     <div class="container">
         <h2>⭐️ تقييم موقع ميزانيتي</h2>

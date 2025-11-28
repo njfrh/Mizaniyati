@@ -42,131 +42,199 @@ $stmt->close();
 <title>صفحة التقارير وسجل العمليات</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+    /* ------------------ التنسيق الأساسي (الخلفية والحاوية) ------------------ */
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background:#f4f5f7; margin:0; padding:20px; direction:rtl; }
-    .container { max-width: 900px; margin: 30px auto; background:#fff; border-radius:14px; padding:30px; box-shadow:0 8px 24px rgba(0,0,0,.08); }
-    h2 { text-align:center; color:#101826; margin-bottom:30px; }
-    .back-link { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #101826; font-weight: 600; }
-
-    /* 🔴 رسالة الخطأ */
-    .error-msg {
-        background-color: #ffe5e5;
-        color: #b00020;
-        padding: 10px 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        text-align: center;
-        font-size: 14px;
-        font-weight: 600;
+    
+    body { 
+        margin: 0; 
+        background: linear-gradient(135deg, #2AB7A9, #1E8E82 65%);
+        display: flex; /* لمركزة الحاوية رأسياً وأفقياً */
+        justify-content: center;
+        align-items: flex-start; /* نبدأ من الأعلى */
+        min-height: 100vh;
+        padding: 40px 20px; 
+        direction: rtl; 
     }
+    .container { 
+        max-width: 500px; /* ⬅️ تم تصغير العرض لـ 500px بناءً على طلبك */
+        width: 100%; /* للتأكد من أنها تستغل العرض في الجوال */
+        background: #fff; 
+        border-radius: 18px; 
+        padding: 30px; 
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    h2 { text-align: center; color: #101826; margin-bottom: 30px; font-weight: 700; }
+    
+    /* زر الرجوع للخلف */
+    .back-link { 
+        display: inline-block; 
+        margin-bottom: 25px; 
+        text-decoration: none; 
+        color: #fff; 
+        font-weight: 600; 
+        padding: 8px 15px; 
+        background: #116B63; 
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        position: fixed; /* تثبيت الزر في الزاوية */
+        top: 20px;
+        right: 20px;
+        z-index: 100;
+    }
+    .back-link:hover { background: #0c5a53; }
 
-    /* ------------------ تنسيق نموذج الإضافة ------------------ */
-    .add-form { 
-        display: flex; 
-        flex-direction: column; 
+
+  /* ------------------ تنسيق نموذج الإضافة ------------------ */
+  .add-form { 
+        display: flex; /* تحويل إلى عمود واحد عمودي */
+        flex-direction: column;
         gap: 15px; 
-        margin-bottom: 30px; 
-        padding: 20px; 
+        margin-bottom: 40px; 
+        padding: 25px; 
         border: 1px solid #ddd; 
         border-radius: 12px;
         background-color: #f9f9f9;
     }
-    .add-form label {
-        font-weight: 600;
-        color: #101826;
-        margin-top: 5px;
-    }
+    
+    .add-form label { font-weight: 600; color: #101826; margin-bottom: 5px; display: block; }
+    .input-group { display: flex; flex-direction: column; } 
+
     .add-form input[type="number"], 
     .add-form input[type="text"], 
     .add-form select { 
-        padding: 12px; 
-        border-radius: 8px; 
+        padding: 14px; /* حجم حقول auth.php */
+        border-radius: 10px; 
         border: 1px solid #dcdfe4; 
         width: 100%; 
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        transition: border-color 0.2s;
     }
-    .add-form button { 
+    .add-form input:focus, .add-form select:focus {
+        border-color: #2AB7A9; /* لون التركيز الأخضر */
+        box-shadow: 0 0 0 3px rgba(42,183,169,0.20);
+        outline: none;
+    }
+
+    .btn-primary { 
         padding: 14px 20px; 
-        background: #00a87a; 
+        background: #2AB7A9; 
         color: white; 
         cursor: pointer; 
         border: none;
-        border-radius: 8px;
+        border-radius: 10px; 
         font-weight: bold;
-        margin-top: 10px;
+        transition: background 0.3s;
+        width: 100%; /* يجب أن يكون الزر بعرض كامل */
     }
-    .add-form button:hover { background: #008a65; }
+    .btn-primary:hover { background: #1E8E82; }
     
-    /* ------------------ تنسيق سجل العمليات (الـ Boxes) ------------------ */
+
+    /* ------------------ تنسيق سجل العمليات (مُعدَّل للعرض الضيق) ------------------ */
     .transactions-list {
         display: flex;
         flex-direction: column;
         gap: 10px; 
     }
     .transaction-box {
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,.05);
+        padding: 15px 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08);
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: #fff;
-        border-right: 5px solid; 
+        flex-wrap: wrap; /* السماح للعناصر بالنزول لسطر جديد */
+        align-items: flex-start;
+        background-color: #ffffff;
+        border-right: 6px solid; 
+        transition: transform 0.2s;
     }
-    .transaction-box.income { border-right-color: #0b7a3b; } /* لون أخضر للإيراد */
-    .transaction-box.expense { border-right-color: #dc3545; } /* لون أحمر للمصروف */
+    .transaction-box.income { border-right-color: #0b7a3b; } 
+    .transaction-box.expense { border-right-color: #dc3545; } 
     
     .comment-text {
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 600;
         color: #101826;
         flex-grow: 1;
+        width: 100%; /* التعليق يأخذ عرض كامل وينزل سطر */
+        margin-bottom: 8px;
     }
     .details {
         display: flex;
+        flex-wrap: wrap; 
         align-items: center;
-        gap: 15px;
-        font-size: 13px;
+        gap: 8px 15px; /* مسافة بين العناصر */
+        font-size: 14px;
         color: #777;
+        width: 100%; /* التفاصيل تأخذ عرض كامل */
     }
     .amount-value {
         font-weight: bold;
+        text-align: right;
     }
-
-    /* 🛑 تنسيق أزرار الإجراءات (تعديل وحذف) */
-    .actions {
-        display: flex;
-        gap: 8px;
-        margin-right: 15px;
-        flex-shrink: 0; 
-    }
-    .action-btn {
-        padding: 6px 10px;
+    .category-tag {
+        background-color: #f0f0f0;
+        padding: 4px 8px;
         border-radius: 6px;
         font-size: 12px;
         font-weight: 500;
-        cursor: pointer;
-        text-decoration: none;
-        border: 1px solid transparent;
-        transition: all 0.2s;
-    }
-    .edit-btn {
-        background-color: #f7f7f7;
-        color: #333;
-        border-color: #ddd;
-    }
-    .edit-btn:hover {
-        background-color: #eee;
-    }
-    .delete-btn {
-        background-color: #dc3545;
-        color: white;
-        border: none;
-    }
-    .delete-btn:hover {
-        background-color: #c82333;
+        color: #555;
     }
 
+    /* تنسيق أزرار الإجراءات */
+   /* ------------------ تنسيق أزرار الإجراءات (تعديل وحذف) ------------------ */
+.actions {
+    display: flex;
+    gap: 5px; /* مسافة أصغر بين الأزرار */
+    margin-right: auto; /* دفع الأزرار إلى أقصى اليسار */
+    flex-shrink: 0; 
+    align-items: center;
+}
+
+.action-btn {
+    /* أساسيات الزر */
+    padding: 6px 10px; 
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    text-decoration: none; /* مهم للروابط <a> */
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* زر التعديل */
+.edit-btn {
+    background-color: #f0f8ff; /* خلفية فاتحة جداً */
+    color: #007bff; /* لون أزرق */
+    border: 1px solid #cce5ff;
+}
+.edit-btn:hover {
+    background-color: #e3f2ff;
+    border-color: #a6caff;
+}
+/* إضافة الأيقونة كجزء من النص */
+.edit-btn:before {
+    content: "✍️"; 
+    font-size: 12px;
+}
+
+/* زر الحذف */
+.delete-btn {
+    background-color: #fff0f0; /* خلفية فاتحة جداً */
+    color: #dc3545; /* لون أحمر */
+    border: 1px solid #f5c6cb;
+}
+.delete-btn:hover {
+    background-color: #f8d7da;
+    border-color: #f1aeb5;
+}
+/* إضافة الأيقونة كجزء من النص */
+.delete-btn:before {
+    content: "🗑️";
+    font-size: 12px;
+}
 </style>
 </head>
 <body>  
@@ -204,10 +272,11 @@ $stmt->close();
             <input type="hidden" name="section" value="يومية">
             <input type="hidden" name="category" value="أخرى">
             
-            <button type="submit">إضافة المصروف</button>
-        </form>
+            <button type="submit" class= btn-primary >إضافة المصروف</button>
+        </form> 
 
-        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 30px 0;">
+<hr style="border: 0; border-top: 1px dashed #ccc; margin: 30px 0;">
+
 
         <h2>🧾 سجل العمليات</h2>
         

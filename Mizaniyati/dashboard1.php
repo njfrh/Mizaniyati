@@ -364,36 +364,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
+/* ------------------ تنسيق القائمة المنسدلة ------------------ */
+
 .user-icon {
-
-    width: 36px; /* **تم تصغير العرض هنا** */
-
-    height: 36px; /* **تم تصغير الارتفاع هنا** */
-
-    background-color: #f0f0f0;
-
+    width: 36px; /* *تم تصغير العرض هنا* */
+    height: 36px; /* *تم تصغير الارتفاع هنا* */
+    background: #fff;
+    color: #2AB7A9;
     border-radius: 50%;
-
     display: flex;
-
     justify-content: center;
-
     align-items: center;
-
     cursor: pointer;
-
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); /* ظل أصغر */
-
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* ظل أصغر */
     padding: 2px; /* تصغير الـ padding */
-
     overflow: hidden;
-
     transition: transform 0.2s;
-    
-    
-   
-
-
 }
 
 
@@ -440,31 +426,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 .dropdown-menu {
 
-    position: absolute;
-
+   position: absolute;
     top: 55px; /* تم تعديل المسافة من الأعلى: 36px (حجم الأيقونة) + 9px (مسافة) */
-
     right: 0;
-
     background: #fff;
-
     border-radius: 12px;
-
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-
     width: 200px;
-
     overflow: hidden;
-
     padding: 10px 0;
-
     display: none;
-
     text-align: right;
-
     direction: rtl;
-
 }
+
 
 .dropdown-menu {
 
