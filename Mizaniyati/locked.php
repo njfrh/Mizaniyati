@@ -180,13 +180,15 @@ if ($salary > 0 && $total_balance <= $required_balance) {
     <meta charset="UTF-8">
     <title>حساب مغلق</title>
    <style>
-         body {
-            font-family: 'Arial', sans-serif;
-            direction: rtl;
-            background-color: #f5f5f5;
-            padding: 20px;
-            margin: 0;
-        }
+        body {
+    font-family: 'Arial', sans-serif;
+    direction: rtl;
+    margin: 0;
+    padding: 20px;
+
+    background: linear-gradient(135deg, #2AB7A9, #1E8E82 65%) !important;
+    background-attachment: fixed;
+}
   /* زر الرجوع للخلف */
 
         .container {

@@ -1,4 +1,4 @@
-<?php
+ <?php
 session_start();
 include "db.php";
 
@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </a>
     
     <a href="rate_app.php" class="menu-item">
-         ⭐️ تقييم  ميزانيتي
+         ⭐ تقييم  ميزانيتي
     </a>
     
 <a href="logout.php" class="menu-item exit">🚪 تسجيل الخروج</a>
@@ -196,15 +196,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 <style>
   body {
-    margin: 0;
-    font-family: "Tahoma", sans-serif;
-    background-color: #fff;
-    color: #111;
-    text-align: center;
-    direction: rtl;
-  }
-
-  .topbar {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: "Tahoma", sans-serif;
+  background: #1E8E82 !important;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: #111;
+  text-align: center;
+  direction: rtl;
+}
+.topbar {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -218,6 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     font-weight: bold;
   }
 
+ 
   .tabs {
     display: flex;
     justify-content: center;
@@ -229,11 +233,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 14px;
-    color: #666;
+    color: #0b0b0bff;
   }
   .tab.active {
-    background: #888;
-    color: #fff;
+    background: #f1f0f0ff;
+    color: #1c1b1bff;
     font-weight: bold;
   }
 
@@ -241,10 +245,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     padding: 40px 15px 60px;
   }
   .title {
-    color: #777;
-    font-size: 15px;
-    margin-bottom: 8px;
-  }
+  background: #fff !important;
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 10px;
+  color: #6b6767d4 !important; /* النص يبقى رمادي */
+}
+
   .balance {
     font-size: 36px;
     font-weight: bold;
@@ -311,17 +318,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     flex-wrap: wrap;
     margin-top: 50px;
   }
-  .account-card {
-    width: 180px;
-    padding: 25px;
-    border-radius: 10px;
-    background-color: #dcd5d5ff;
-    box-shadow: 0 0 5px rgba(68, 23, 23, 0.1);
-    cursor: pointer;
-    transition: 0.2s;
-    text-align: center;
-    margin-top: 29px;
-  }
+ .account-card {
+  width: 180px;
+  padding: 25px;
+  border-radius: 10px;
+  background-color: #ffffff !important; /* أبيض */
+  box-shadow: 0 0 5px rgba(68, 23, 23, 0.1);
+  cursor: pointer;
+  transition: 0.2s;
+  text-align: center;
+  margin-top: 29px;
+  color: #000 !important; /* النص أسود */
+}
+
   .account-card:hover {
     background-color: #f5f5f5;
     transform: scale(1.03);
@@ -337,7 +346,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     font-size: 18px;
   }
   .account-card small {
-    color: #777;
+    color: #eae5e5ff;
     font-size: 12px;
   }
 
@@ -367,10 +376,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /* ------------------ تنسيق القائمة المنسدلة ------------------ */
 
 .user-icon {
+<<<<<<< Updated upstream
     width: 36px; /* *تم تصغير العرض هنا* */
     height: 36px; /* *تم تصغير الارتفاع هنا* */
     background: #fff;
     color: #2AB7A9;
+=======
+
+    width: 36px; /* *تم تصغير العرض هنا* */
+
+    height: 36px; /* *تم تصغير الارتفاع هنا* */
+
+    background-color: #f0f0f0;
+
+>>>>>>> Stashed changes
     border-radius: 50%;
     display: flex;
     justify-content: center;

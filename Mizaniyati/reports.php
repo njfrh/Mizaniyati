@@ -42,25 +42,26 @@ $stmt->close();
 <title>صفحة التقارير وسجل العمليات</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+<<<<<<< Updated upstream
     /* ------------------ التنسيق الأساسي (الخلفية والحاوية) ------------------ */
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
     body { 
         margin: 0; 
-        background: linear-gradient(135deg, #2AB7A9, #1E8E82 65%);
-        display: flex; /* لمركزة الحاوية رأسياً وأفقياً */
-        justify-content: center;
-        align-items: flex-start; /* نبدأ من الأعلى */
-        min-height: 100vh;
+        background: linear-gradient(135deg, #2AB7A9, #1E8E82 65%) !important;
         padding: 40px 20px; 
-        direction: rtl; 
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        direction: rtl;
     }
     .container { 
-        max-width: 500px; /* ⬅️ تم تصغير العرض لـ 500px بناءً على طلبك */
+        max-width: 400px; /* ⬅️ تم تصغير العرض لـ 500px بناءً على طلبك */
         width: 100%; /* للتأكد من أنها تستغل العرض في الجوال */
         background: #fff; 
         border-radius: 18px; 
-        padding: 30px; 
+        padding: 15px; 
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
     h2 { text-align: center; color: #101826; margin-bottom: 30px; font-weight: 700; }
@@ -87,15 +88,15 @@ $stmt->close();
 
   /* ------------------ تنسيق نموذج الإضافة ------------------ */
   .add-form { 
-        display: flex; /* تحويل إلى عمود واحد عمودي */
-        flex-direction: column;
-        gap: 15px; 
-        margin-bottom: 40px; 
-        padding: 25px; 
-        border: 1px solid #ddd; 
-        border-radius: 12px;
-        background-color: #f9f9f9;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 4px;         /* تقليل المسافات بين الحقول */
+    margin-bottom: 20px;
+    padding: 6px;    /* أهم شيء… يقلل الحجم */
+    border: 1px solid #ddd;
+    border-radius: 2px; /* زوايا أصغر */
+    background-color: #f9f9f9;
+}
     
     .add-form label { font-weight: 600; color: #101826; margin-bottom: 5px; display: block; }
     .input-group { display: flex; flex-direction: column; } 
@@ -238,8 +239,166 @@ $stmt->close();
     font-size: 12px;
 }
 
+=======
+  * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+  body { background:#f4f5f7; margin:0; padding:20px; direction:rtl; }
+  .container { max-width: 900px; margin: 30px auto; background:#fff; border-radius:14px; padding:30px; box-shadow:0 8px 24px rgba(0,0,0,.08); }
+  h2 { text-align:center; color:#101826; margin-bottom:30px; }
+  .back-link { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #101826; font-weight: 600; }
 
+  .error-msg {
+      background-color: #ffe5e5;
+      color: #b00020;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+  }
+
+  .add-form { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 15px; 
+      margin-bottom: 30px; 
+      padding: 20px; 
+      border: 1px solid #ddd; 
+      border-radius: 12px;
+      background-color: #f9f9f9;
+  }
+  .add-form label {
+      font-weight: 600;
+      color: #101826;
+      margin-top: 5px;
+  }
+  .add-form input[type="number"], 
+  .add-form input[type="text"], 
+  .add-form select { 
+      padding: 12px; 
+      border-radius: 8px; 
+      border: 1px solid #dcdfe4; 
+      width: 100%; 
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .add-form button { 
+      padding: 14px 20px; 
+      background: #00a87a; 
+      color: white; 
+      cursor: pointer; 
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 10px;
+  }
+  .add-form button:hover { background: #008a65; }
+
+  .transactions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px; 
+  }
+>>>>>>> Stashed changes
+
+  .transaction-box {
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      border-right: 5px solid; 
+  }
+  .transaction-box.income { border-right-color: #0b7a3b; }
+  .transaction-box.expense { border-right-color: #dc3545; }
+
+  .comment-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: #101826;
+      flex-grow: 1;
+  }
+  .details {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 13px;
+      color: #777;
+  }
+  .amount-value {
+      font-weight: bold;
+  }
+
+  .actions {
+      display: flex;
+      gap: 8px;
+      margin-right: 15px;
+      flex-shrink: 0; 
+  }
+  .action-btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+  }
+  .edit-btn {
+      background-color: #f7f7f7;
+      color: #333;
+      border-color: #ddd;
+  }
+  .edit-btn:hover {
+      background-color: #eee;
+  }
+  .delete-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+  }
+  .delete-btn:hover {
+      background-color: #c82333;
+  }
+
+  /* 🔵 بوكس الرصيد */
+  .balance-box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+  }
+  .balance-title {
+    background: linear-gradient(135deg, #2AB7A9, #1E8E82 65%);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+}
+.operations-title {
+    background: linear-gradient(135deg, #2AB7A9, #1E8E82 65%);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 25px 0;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+}
 </style>
+
 </head>
 <body> 
 
@@ -247,7 +406,9 @@ $stmt->close();
 
     <div class="container">
         
-        <h2>الرصيد الإجمالي: <?php echo number_format($total_balance); ?> SAR 🪙</h2>
+        <div class="balance-title">
+    الرصيد الإجمالي: <?php echo number_format($total_balance); ?> SAR 🪙
+</div>
 
         <?php if (!empty($_SESSION['error'])): ?>
             <div class="error-msg">
@@ -279,11 +440,11 @@ $stmt->close();
             
             <button type="submit" class= btn-primary >إضافة المصروف</button>
         </form> 
+        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 30px 0;">
 
-<hr style="border: 0; border-top: 1px dashed #ccc; margin: 30px 0;">
-
-
-        <h2>🧾 سجل العمليات</h2>
+        <div class="operations-title">
+    🧾 سجل العمليات
+</div>
         
         <?php if (empty($transactions)): ?>
             <p style="text-align: center; color: #777;">لا توجد معاملات مسجلة بعد.</p>
