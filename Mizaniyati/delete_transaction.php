@@ -10,8 +10,8 @@ if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST' || !is
 $user_id = $_SESSION['user_id'];
 $transaction_id = intval($_POST['id']);
 
-// 1. جلب تفاصيل العملية المحذوفة
-$stmt = $conn->prepare("SELECT amount, account_type FROM transactions WHERE id = ? AND user_id = ?");
+// جلب العملية فقط للتأكد أنها تخص المستخدم
+$stmt = $conn->prepare("SELECT id FROM transactions WHERE id = ? AND user_id = ?");
 $stmt->bind_param("ii", $transaction_id, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -19,41 +19,15 @@ $transaction = $result->fetch_assoc();
 $stmt->close();
 
 if ($transaction) {
-    $amount_to_reverse = $transaction['amount'];
-    $account_type = $transaction['account_type'];
 
-    // ✅ لو مو من الحساب المغلق بس نرجّع الرصيد
-    if ($account_type !== 'مغلق') {
-        // عكس العملية
-        $reverse_amount = -$amount_to_reverse;
-
-        // جلب الرصيد الحالي
-        $stmt = $conn->prepare("SELECT balance FROM accounts WHERE user_id = ? AND account_type = ?");
-        $stmt->bind_param("is", $user_id, $account_type);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-        $current_balance = $row['balance'] ?? 0;
-        $stmt->close();
-
-        // تحديث الرصيد
-        $new_balance = $current_balance + $reverse_amount;
-
-        // تحديث الرصيد في قاعدة البيانات
-        $update_stmt = $conn->prepare("UPDATE accounts SET balance = ? WHERE user_id = ? AND account_type = ?");
-        $update_stmt->bind_param("dis", $new_balance, $user_id, $account_type);
-        $update_stmt->execute();
-        $update_stmt->close();
-    }
-
-    // حذف العملية من جدول transactions
+    // ❗ حذف العملية بدون أي تعديل على الرصيد
     $delete_stmt = $conn->prepare("DELETE FROM transactions WHERE id = ? AND user_id = ?");
     $delete_stmt->bind_param("ii", $transaction_id, $user_id);
     $delete_stmt->execute();
     $delete_stmt->close();
 }
 
-// العودة إلى صفحة التقارير بعد الحذف
+// رجوع لصفحة التقارير
 header('Location: reports.php');
 exit;
 ?>

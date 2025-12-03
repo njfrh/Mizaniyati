@@ -179,7 +179,7 @@ if ($salary > 0 && $total_balance <= $required_balance) {
 <head>
     <meta charset="UTF-8">
     <title>حساب مغلق</title>
-    <style>
+   <style>
          body {
             font-family: 'Arial', sans-serif;
             direction: rtl;
@@ -188,16 +188,7 @@ if ($salary > 0 && $total_balance <= $required_balance) {
             margin: 0;
         }
   /* زر الرجوع للخلف */
- .back-link {
-            display: inline-block;
-            margin: 10px 20px;
-            text-decoration: none;
-            color: #007bff;
-            font-size: 14px;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
+
         .container {
             background: white;
             width: 50%;
@@ -283,11 +274,96 @@ if ($salary > 0 && $total_balance <= $required_balance) {
         .submit-btn:hover {
             background-color: #218838;
         }
+        
+        .back-as-button {
+    display: inline-block;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 12px;
+    background: #268176ff;
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.25s;
+    text-decoration: none;
+}
+
+.back-as-button:hover {
+    background: #34b4a8ff;
+    color: #fff;
+}
+  
+/* ترتيب السطر ونزول الخانة */
+.small-deposit-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;   /* ينزل السطر تحت شوي */
+}
+
+/* خانة المبلغ لأن نوعها number */
+.small-deposit-form input[type="number"] {
+    padding:4px 4px;
+    border-radius: 12px;
+    border: 1.7px solid #c8e9e6;
+    font-size: 14px;
+    width: 100px;
+    outline: none;
+    transition: 0.25s;
+}
+
+.small-deposit-form input[type="number"]:focus {
+    border-color: #2AB7A9;
+    box-shadow: 0 0 0 3px rgba(42,183,169,0.25);
+}
+
+/* أول زر في الفورم = زر الإيداع */
+.small-deposit-form button[type="submit"] {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 12px;
+    background: #2AB7A9;   /* نفس أزرار صفحة صحبتك */
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+/* الهوفر حق زر الإيداع */
+.small-deposit-form button[type="submit"]:hover {
+    background: #1E8E82;
+}
+
+/* زر الإضافة = آخر زر في السطر (button الوحيد الثاني) */
+.small-deposit-form button:last-child {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 12px;
+    background: #116B63;   /* نفس زر الرجوع للرصيد */
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+/* الهوفر حق زر الإضافة */
+.small-deposit-form button:last-child:hover {
+    background: #2AB7A9;
+}
+      
+   
+         
+
+     
+       
     </style>
 </head>
 <body>
 
-    <a href="dashboard1.php" class="back-link">← الرجوع إلى الرصيد الإجمالي</a>
+    <a href="dashboard1.php" class="back-as-button">الرجوع للرصيد</a>
 
     <div class="container">
 
